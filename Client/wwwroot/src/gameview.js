@@ -13,10 +13,10 @@ function initCanvas(canvas_ref) {
 
 function drawCol(i, h, colors) {
 	//console.log("DRAWING COLUMN");
-	ctx.strokeStyle = colors[(h.d * 4) >> 0];
+	ctx.strokeStyle = colors[(h * 4) >> 0];
 	let v = 0;
-	if (h.d != 0)
-		v = 256 / h.d;
+	if (h != 0)
+		v = 256 / h;
 
 	ctx.beginPath();
 	ctx.moveTo(i, 128 - (v / 2));

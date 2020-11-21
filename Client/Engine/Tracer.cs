@@ -119,7 +119,7 @@ namespace dfe.Client.Engine
             colors = new string[64];
             for (int index = 0; index < 64; index++)
             {
-                int c = ((256 / 64) * index) >> 0;
+                int c = (int)((float)(256 / 64) * (float)index);
                 colors[63 - index] = "rgb(" + c.ToString() + ", " + c.ToString() + ", " + c.ToString() + ")";
             }
         }
