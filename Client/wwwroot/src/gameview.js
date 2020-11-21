@@ -1,13 +1,19 @@
 ﻿let ctx;
 
+let width;
+
+let height;
+
 function initCanvas(canvas_ref) {
 	ctx = canvas_ref.getContext('2d');
+	width = canvas_ref.width;
+	height = canvas_ref.height;
 }
 
 
 function drawCol(i, h, colors) {
+	//console.log("DRAWING COLUMN");
 	ctx.strokeStyle = colors[(h.d * 4) >> 0];
-
 	let v = 0;
 	if (h.d != 0)
 		v = 256 / h.d;
@@ -20,7 +26,8 @@ function drawCol(i, h, colors) {
 
 
 function render(rayBuffer, colors) {
-	ctx.fillRect(0, 0, view.width, view.height);
+	//console.log("RENDERING FRAME");
+	ctx.fillRect(0, 0, width, height);
 	
 	for (let index = 0; index < 256; index++) {
 		drawCol(index, rayBuffer[index], colors);
