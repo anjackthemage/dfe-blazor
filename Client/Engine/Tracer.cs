@@ -14,13 +14,13 @@ namespace dfe.Client.Engine
         public bool r;
     }
 
-    public struct observer
+    public class Observer
     {
         public float x;
         public float y;
         public float a;
 
-        public observer(float x_coord, float y_coord, float angle)
+        public Observer(float x_coord, float y_coord, float angle)
         {
             this.x = x_coord;
             this.y = y_coord;
@@ -79,13 +79,16 @@ namespace dfe.Client.Engine
     public class Tracer
     {
 
+        // Rate of heading change during turns.
+        public const float turnRate = 0.05f;
+
         // Grid size in units.
         public const int grid_x = 16;
         public const int grid_y = 16;
         // Controller!
         public input_ctrl keyb = new input_ctrl();
         // Observer object.
-        public observer obs = new observer(128.5f, 128.5f, 0.0f);
+        public Observer obs = new Observer(128.5f, 128.5f, 0.0f);
         // Map Object
         public level_map lvl_test = new level_map(16, 16);
         // Number of Viewport columns
@@ -124,12 +127,11 @@ namespace dfe.Client.Engine
             }
         }
 
-        public void rotObserver(observer o, float a)
+        public void rotObserver(Observer o, float a)
         {
             Console.WriteLine("Starting rotation: {0}", o.a);
             o.a += a;
             Console.WriteLine("Ending rotation: {0}", o.a);
-
             if (o.a >= 2 * (float)Math.PI)
             {
                 o.a -= (2 * (float)Math.PI);
@@ -157,7 +159,7 @@ namespace dfe.Client.Engine
             return rayBuffer;
         }
 
-        public ray rayCast(observer obs, float ang)
+        public ray rayCast(Observer obs, float ang)
         {
             // Find the map cell that the observer is in.
             float obsGridX = obs.x / grid_x;
@@ -284,12 +286,12 @@ namespace dfe.Client.Engine
             if (keyb.l == true)
             {
                 //Console.WriteLine("TURN LEFT");
-                rotObserver(obs, -0.25f);
+                rotObserver(obs, -turnRate);
             }
             else if (keyb.r == true)
             {
                 //Console.WriteLine("TURN RIGHT");
-                rotObserver(obs, 0.25f);
+                rotObserver(obs, turnRate);
             }
         }
     }
