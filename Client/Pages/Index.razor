@@ -1,0 +1,88 @@
+﻿@page "/"
+
+@using Engine;
+
+@inject IJSRuntime JsRuntime;
+
+
+<canvas id="game_canvas" width="256" height="256" @ref="render_canvas"></canvas>
+
+@code {
+    protected ElementReference render_canvas;
+
+
+
+    Tracer ray_tracer;
+
+    protected override async Task OnInitializedAsync()
+    {
+        ray_tracer = new Tracer();
+
+        //await JsRuntime.InvokeAsync<object>("initGame", DotNetObjectReference.Create(this));
+
+        await base.OnInitializedAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool first_render)
+    {
+        if (first_render)
+        {
+            await JsRuntime.InvokeAsync<object>("initGame", DotNetObjectReference.Create(this));
+        }
+    }
+
+    [JSInvokable]
+    public async ValueTask update(double time_stamp)
+    {
+        ray_tracer.updateObserver();
+        ray[] ray_buffer = ray_tracer.buildRayBuffer();
+
+        await JsRuntime.InvokeVoidAsync("render", ray_buffer, ray_tracer.colors);
+    }
+
+    [JSInvokable]
+    public void handleKeyUp(KeyboardEventArgs kbe_args)
+    {
+        string key = kbe_args.Key;
+        switch (key)
+        {
+            case "ArrowUp":
+                ray_tracer.keyb.u = false;
+                break;
+            case "ArrowDown":
+                ray_tracer.keyb.d = false;
+                break;
+            case "ArrowLeft":
+                ray_tracer.keyb.l = false;
+                break;
+            case "ArrowRight":
+                ray_tracer.keyb.r = false;
+                break;
+            default:
+                break;
+        }
+    }
+
+    [JSInvokable]
+    public void handleKeyDown(KeyboardEventArgs kbe_args)
+    {
+        string key = kbe_args.Key;
+        switch (key)
+        {
+            case "ArrowUp":
+                ray_tracer.keyb.u = true;
+                break;
+            case "ArrowDown":
+                ray_tracer.keyb.d = true;
+                break;
+            case "ArrowLeft":
+                ray_tracer.keyb.l = true;
+                break;
+            case "ArrowRight":
+                ray_tracer.keyb.r = true;
+                break;
+            default:
+                break;
+        }
+    }
+}
