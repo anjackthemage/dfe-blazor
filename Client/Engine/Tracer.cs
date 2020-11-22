@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -79,6 +81,8 @@ namespace dfe.Client.Engine
     public class Tracer
     {
 
+        public PixelBuffer screen;
+
         // Rate of heading change during turns.
         public const float turnRate = 0.05f;
 
@@ -103,6 +107,9 @@ namespace dfe.Client.Engine
 
         public Tracer()
         {
+            // TODO: Make this inherit the canvas width / height.
+            screen = new PixelBuffer(256, 256);
+            Console.WriteLine("newww");
             ray_buffer = new ray[view_cols];
             for (int index = 0; index < view_cols; index++)
             {
@@ -144,7 +151,8 @@ namespace dfe.Client.Engine
 
         public ray[] buildRayBuffer()
         {
-            ray[] rayBuffer = new ray[256];
+            if (ray_buffer == null)
+                ray_buffer = new ray[256];
 
             float ang_step = fov / 256;
 
@@ -152,11 +160,37 @@ namespace dfe.Client.Engine
 
             for (int index = 0; index < 256; index++)
             {
-                rayBuffer[index] = rayCast(obs, ray_angle);
+                ray_buffer[index] = rayCast(obs, ray_angle);
                 ray_angle += ang_step;
             }
 
-            return rayBuffer;
+            return ray_buffer;
+        }
+
+        /// <summary>
+        /// renderCols()
+        /// 
+        /// Renders the ray_buffer to the screen buffer. 
+        /// </summary>
+        public void renderCols()
+        {
+            screen.Clear();
+            Color4i cyan = new Color4i(0, 128, 255);
+            for (int x = 0; x < screen.Width; x++)
+            {
+                screen.ShadeWall(x, ray_buffer[x].d, cyan);
+            }
+        }
+
+        /// <summary>
+        /// Presents the screen to the user by calling the blitScreen javascript function.
+        /// </summary>
+        /// <param name="js"></param>
+        /// 
+        public void presentScreen(IJSRuntime js)
+        {
+            IJSUnmarshalledRuntime umjs = (IJSUnmarshalledRuntime)js;
+            object result = umjs.InvokeUnmarshalled<byte[], int, int, object>("blitScreen", screen.Pixels, screen.Width, screen.Height);
         }
 
         public ray rayCast(Observer obs, float ang)

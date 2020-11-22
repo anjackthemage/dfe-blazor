@@ -25,6 +25,10 @@ function drawCol(i, h, colors) {
 };
 
 
+function blitScreen(pixelData, width, height) {
+	ctx.putImageData(new ImageData(new Uint8ClampedArray(Blazor.platform.toUint8Array(pixelData)), width, height), 0, 0);
+};
+
 function render(rayBuffer, colors) {
 	//console.log("RENDERING FRAME");
 	ctx.fillRect(0, 0, width, height);
