@@ -7,8 +7,8 @@
 @inject IJSRuntime JsRuntime;
 @inject NavigationManager NavigationManager
 
-
-<canvas tabindex="0" id="game_canvas" width="256" height="256" @ref="render_canvas" @onkeydown="handleKeyDown" @onkeyup="handleKeyUp"></canvas>
+<button hidden="@hide_button" @onclick="showGame">Start Game</button>
+<canvas hidden="@hide_game" tabindex="0" id="game_canvas" width="256" height="256" @ref="render_canvas" @onkeydown="handleKeyDown" @onkeyup="handleKeyUp"></canvas>
 
 <div>
     <label>
@@ -43,6 +43,9 @@
     private List<string> messages = new List<string>();
     private string user_input;
     private string msg_input;
+
+    private bool hide_game = true;
+    private bool hide_button = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -82,6 +85,15 @@
         {
             await JsRuntime.InvokeAsync<object>("initGame", DotNetObjectReference.Create(this));
         }
+    }
+
+    private async void showGame()
+    {
+        this.hide_game = false;
+        this.hide_button = true;
+        StateHasChanged();
+
+        await JsRuntime.InvokeVoidAsync("playAudio", "/audio/bgm_test.mp3");
     }
 
     [JSInvokable]

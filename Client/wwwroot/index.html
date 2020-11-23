@@ -27,6 +27,17 @@
             window.requestAnimationFrame(doGameLoop);
         };
 
+        window.playAudio = (uri) => {
+            var audio = new Audio(uri);
+
+            audio.addEventListener("canplay", (event) => {
+                audio.play();
+            });
+
+            audio.load();
+
+        };
+
     </script>
 </head>
 
