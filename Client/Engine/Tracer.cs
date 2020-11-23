@@ -58,34 +58,53 @@ namespace dfe.Client.Engine
         }
     }
 
+    /// <summary>
+    /// Describes a ray -> map intersection.
+    /// Used for detecting where a ray hits a block on the blockmap.
+    /// </summary>
     public struct ray
     {
+        // X coordinate ray hit.
         public float x;
+        // Y coordinate ray hit.
         public float y;
-        public int mx;
-        public int my;
-        public bool h;
-        public float d;
+        // The map tile that the ray hit.
+        public int map_x;
+        // The map tile Y
+        public int map_y;
+        // Bool value stating whether this ray hit or not.
+        public bool hit;
+        // Texture offset where the hit occured.
+        public float texOfs;
+        // The distance, in map units, from the cast point.
+        public float dis;
 
         public ray(float x_coord, float y_coord, int map_x, int map_y, bool hit, float new_d)
         {
             this.x = x_coord;
             this.y = y_coord;
-            this.mx = map_x;
-            this.my = map_y;
-            this.h = hit;
-            this.d = new_d;
+            this.map_x = map_x;
+            this.map_y = map_y;
+            this.hit = hit;
+            this.texOfs = 0;
+            this.dis = new_d;
         }
     }
 
     public class Tracer
     {
+        // The framebuffer to be displayed to the user.
+        public PixelBuffer frameBuffer;
+        // Test texture
+        public PixelBuffer tex;
 
-        public PixelBuffer screen;
+        // Number of Viewport columns
+        public int view_cols = 256;
+        // Number of Viewport rows
+        public int view_rows = 256;
 
         // Rate of heading change during turns.
         public const float turnRate = 0.05f;
-
         // Grid size in units.
         public const int grid_x = 16;
         public const int grid_y = 16;
@@ -95,8 +114,6 @@ namespace dfe.Client.Engine
         public Observer obs = new Observer(128.5f, 128.5f, 0.0f);
         // Map Object
         public level_map lvl_test = new level_map(16, 16);
-        // Number of Viewport columns
-        public int view_cols = 256;
         // Ray Data Array
         public ray[] ray_buffer;
         // Field of View
@@ -104,20 +121,33 @@ namespace dfe.Client.Engine
 
         // Color gradient for fun :)
         public string[] colors;
-
         public Tracer()
         {
-            // TODO: Make this inherit the canvas width / height.
-            screen = new PixelBuffer(256, 256);
-            Console.WriteLine("newww");
+            frameBuffer = new PixelBuffer(view_cols, view_rows);
+            tex = new PixelBuffer(16, 16);
+            tex.Clear(new Color4i(0, 64, 128));
+            for(int y = 0; y < 16; y++)
+                for(int x = 0; x < 16; x++)
+                {
+                    byte c = (byte)(y * 16);
+                    tex.DrawPoint(x, y, new Color4i(c, c, c));
+                }
+
+            tex.DrawPoint(0, 0, new Color4i(255, 0, 0));
+            tex.DrawPoint(2, 0, new Color4i(255, 128, 0));
+            tex.DrawPoint(3, 0, new Color4i(255, 0, 0));
+
+            // Ray buffer used for storing ray cast results.
             ray_buffer = new ray[view_cols];
             for (int index = 0; index < view_cols; index++)
             {
                 ray_buffer[index] = new ray(0, 0, 0, 0, false, 0);
             }
 
+            // Current Field of Vision
             fov = (float)Math.PI / 4;
 
+            // Initialize map data.
             for (int index = 0; index < 16; index++)
             {
                 lvl_test.d[index] = 1;
@@ -125,13 +155,15 @@ namespace dfe.Client.Engine
                 lvl_test.d[index * 16] = 1;
                 lvl_test.d[15 + (index * 16)] = 1;
             }
+        }
 
-            colors = new string[64];
-            for (int index = 0; index < 64; index++)
-            {
-                int c = (int)((float)(256 / 64) * (float)index);
-                colors[63 - index] = "rgb(" + c.ToString() + ", " + c.ToString() + ", " + c.ToString() + ")";
-            }
+        /// <summary>
+        /// Render a single frame.
+        /// </summary>
+        public void render()
+        {
+            ray_buffer = buildRayBuffer();
+            renderCols();
         }
 
         public void rotObserver(Observer o, float a)
@@ -151,19 +183,22 @@ namespace dfe.Client.Engine
 
         public ray[] buildRayBuffer()
         {
+            // Lazy init of the ray_buffer
             if (ray_buffer == null)
-                ray_buffer = new ray[256];
+                ray_buffer = new ray[view_cols];
 
-            float ang_step = fov / 256;
-
+            float ang_step = fov / view_cols;
             float ray_angle = obs.a - (fov / 2);
+            float ang_diff = -(fov / 2);
 
-            for (int index = 0; index < 256; index++)
+            for (int index = 0; index < view_cols; index++)
             {
                 ray_buffer[index] = rayCast(obs, ray_angle);
+                // Dewarp
+                ray_buffer[index].dis = ray_buffer[index].dis * (float)Math.Cos(ang_diff);
                 ray_angle += ang_step;
+                ang_diff += ang_step;
             }
-
             return ray_buffer;
         }
 
@@ -174,23 +209,13 @@ namespace dfe.Client.Engine
         /// </summary>
         public void renderCols()
         {
-            screen.Clear();
+            frameBuffer.Clear();
             Color4i cyan = new Color4i(0, 128, 255);
-            for (int x = 0; x < screen.Width; x++)
+            for (int x = 0; x < frameBuffer.Width; x++)
             {
-                screen.ShadeWall(x, ray_buffer[x].d, cyan);
+                //frameBuffer.ShadeWall(x, ray_buffer[x].dis, cyan);
+                frameBuffer.RenderWall(x, ray_buffer[x].dis, ray_buffer[x].texOfs, tex);
             }
-        }
-
-        /// <summary>
-        /// Presents the screen to the user by calling the blitScreen javascript function.
-        /// </summary>
-        /// <param name="js"></param>
-        /// 
-        public void presentScreen(IJSRuntime js)
-        {
-            IJSUnmarshalledRuntime umjs = (IJSUnmarshalledRuntime)js;
-            object result = umjs.InvokeUnmarshalled<byte[], int, int, object>("blitScreen", screen.Pixels, screen.Width, screen.Height);
         }
 
         public ray rayCast(Observer obs, float ang)
@@ -267,14 +292,14 @@ namespace dfe.Client.Engine
                 }
                 if (lvl_test.d[mx + (my * lvl_test.w)] == 1)
                 {
-                    hit.mx = mx;
-                    hit.my = my;
-                    hit.h = true;
+                    hit.map_x = mx;
+                    hit.map_y = my;
+                    hit.hit = true;
                     break;
                 }
             }
 
-            if (hit.h == true)
+            if (hit.hit == true)
             {
                 if (side == 0)
                 {
@@ -283,8 +308,10 @@ namespace dfe.Client.Engine
 
                     var d = hit.x - obsGridX;
                     hit.y = (d * (ny / nx)) + obsGridY;
-                    hit.d = (mx - obsGridX + (1 - stepX) / 2) / nx;
-
+                    hit.dis = (mx - obsGridX + (1 - stepX) / 2) / nx;
+                    hit.texOfs = hit.y - (int)hit.y;
+                    // Mirrored texture correction
+                    if (nx < 0) { hit.texOfs = 1.0f - hit.texOfs; }
                 }
                 else
                 {
@@ -292,13 +319,27 @@ namespace dfe.Client.Engine
                     if (ny < 0) { hit.y = my + 1; }
                     var d = hit.y - obsGridY;
                     hit.x = (d * (nx / ny)) + obsGridX;
-                    hit.d = (my - obsGridY + (1 - stepY) / 2) / ny;
+                    hit.dis = (my - obsGridY + (1 - stepY) / 2) / ny;
+                    hit.texOfs = hit.x - (int)hit.x;
+                    // Mirrored texture correction
+                    if (ny > 0) { hit.texOfs = 1.0f - hit.texOfs; }
                 }
 
                 hit.x = hit.x * grid_x;
                 hit.y = hit.y * grid_y;
             }
             return hit;
+        }
+
+        /// <summary>
+        /// Presents the screen to the user by calling the blitScreen javascript function.
+        /// </summary>
+        /// <param name="js"></param>
+        /// 
+        public void presentScreen(IJSRuntime js)
+        {
+            IJSUnmarshalledRuntime umjs = (IJSUnmarshalledRuntime)js;
+            object result = umjs.InvokeUnmarshalled<byte[], int, int, object>("blitScreen", frameBuffer.Pixels, frameBuffer.Width, frameBuffer.Height);
         }
 
         public void updateObserver()

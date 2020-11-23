@@ -33,7 +33,7 @@ namespace dfe.Client.Engine
 
         public void DrawPoint(int x, int y, Color4i color)
         {
-            int i = x + (y * Width) % Pixels.Length;
+            int i = (x << 2) + (y * Stride) % Pixels.Length;
             Pixels[i] = color.r;
             Pixels[i + 1] = color.g;
             Pixels[i + 2] = color.b;
@@ -42,7 +42,7 @@ namespace dfe.Client.Engine
 
         public void DrawPoint(int x, int y, byte r, byte g, byte b)
         {
-            int i = x + (y * Width) % Pixels.Length;
+            int i = (x << 2) + (y * Stride) % Pixels.Length;
             Pixels[i] = r;
             Pixels[i + 1] = g;
             Pixels[i + 2] = b;
@@ -69,11 +69,12 @@ namespace dfe.Client.Engine
                 Pixels[i + 3] = color.a;
             }
         }
-        public void ShadeWall(int x, float d, Color4i color)
+        public void ShadeWall(int x, float distance, Color4i color)
         {
-            if (d == 0) return;
-            int colHeight = (int)(Height / d);
-            if (colHeight > Height)
+            int colHeight = Height;
+            if (distance != 0)
+                colHeight = (int)(Height / distance);
+            if (colHeight > Height || distance == 0) 
                 colHeight = Height;
             byte c = (byte)colHeight;
             // Find the top of the column
@@ -85,6 +86,35 @@ namespace dfe.Client.Engine
                 Pixels[y + 2] = c;
                 Pixels[y + 3] = 255;
                 y += Stride;
+            }
+        }
+
+        public void RenderWall(int x, float distance, float texOfs, PixelBuffer srcImage)
+        {
+            int colHeight = Height;
+            if (distance != 0) colHeight = (int)(Height / distance);
+            if (colHeight > Height || distance == 0)
+                colHeight = Height;
+
+            int dst = (x * BPP) + (((Height - colHeight) >> 1) * Stride);
+
+            int fpSrc = (int)((float)srcImage.Height * texOfs);
+            fpSrc = fpSrc * srcImage.Width;
+            fpSrc = fpSrc << 16;
+
+            // int fpSrc = (int)((float)srcImage.Height * texOfs) << 16;
+
+            int fpSrcStep = (srcImage.Width << 16) / colHeight; // fixed point maths.
+            int src;
+            for(int i = 0; i < colHeight; i++)
+            {
+                src = (fpSrc >> 16) << 2;
+                Pixels[dst] = srcImage.Pixels[src];
+                Pixels[dst + 1] = srcImage.Pixels[src + 1];
+                Pixels[dst + 2] = srcImage.Pixels[src + 2];
+                Pixels[dst + 3] = srcImage.Pixels[src + 3];
+                fpSrc += fpSrcStep;
+                dst += Stride;
             }
         }
 

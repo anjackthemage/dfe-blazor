@@ -1,39 +1,20 @@
 ﻿let ctx;
-
 let width;
-
 let height;
 
 function initCanvas(canvas_ref) {
+	console.log("-- InitCanvas --");
 	ctx = canvas_ref.getContext('2d');
 	width = canvas_ref.width;
 	height = canvas_ref.height;
+	console.log(ctx);
 }
 
-
-function drawCol(i, h, colors) {
-	//console.log("DRAWING COLUMN");
-	ctx.strokeStyle = colors[(h * 4) >> 0];
-	let v = 0;
-	if (h != 0)
-		v = 256 / h;
-
-	ctx.beginPath();
-	ctx.moveTo(i, 128 - (v / 2));
-	ctx.lineTo(i, 128 + (v / 2));
-	ctx.stroke();
-};
-
-
+var screenImageData;
 function blitScreen(pixelData, width, height) {
-	ctx.putImageData(new ImageData(new Uint8ClampedArray(Blazor.platform.toUint8Array(pixelData)), width, height), 0, 0);
-};
-
-function render(rayBuffer, colors) {
-	//console.log("RENDERING FRAME");
-	ctx.fillRect(0, 0, width, height);
-	
-	for (let index = 0; index < 256; index++) {
-		drawCol(index, rayBuffer[index], colors);
+	if (!screenImageData) {
+		screenImageData = new ImageData(width, height);
 	}
+	screenImageData.data.set(Blazor.platform.toUint8Array(pixelData));
+	ctx.putImageData(screenImageData, 0, 0);
 };
