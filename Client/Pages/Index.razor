@@ -2,6 +2,7 @@
 
 @using Engine;
 @using Microsoft.AspNetCore.SignalR.Client;
+@using dfe.Shared;
 
 @inject IJSRuntime JsRuntime;
 @inject NavigationManager NavigationManager
@@ -38,6 +39,7 @@
     private Tracer ray_tracer;
     // network
     private HubConnection chat_hub_conn;
+    private HubConnection map_hub_conn;
     private List<string> messages = new List<string>();
     private string user_input;
     private string msg_input;
@@ -48,14 +50,28 @@
 
         chat_hub_conn = new HubConnectionBuilder().WithUrl(NavigationManager.ToAbsoluteUri("/chathub")).Build();
 
-        chat_hub_conn.On<string, string>("receiveMessage", (user, MessageProcessingHandler) =>
+        chat_hub_conn.On<string, string>("receiveMessage", (user, message) =>
         {
-            var encoded_msg = $"{user}: {MessageProcessingHandler}";
+            var encoded_msg = $"{user}: {message}";
             messages.Add(encoded_msg);
             StateHasChanged();
         });
 
         await chat_hub_conn.StartAsync();
+
+        map_hub_conn = new HubConnectionBuilder().WithUrl(NavigationManager.ToAbsoluteUri("/maphub")).Build();
+
+        map_hub_conn.On<float[]>("receiveMap", (data) =>
+        {
+            Console.WriteLine("RECEIVED MAP");
+            ray_tracer.lvl_test.d = data;
+        });
+
+
+        await map_hub_conn.StartAsync();
+
+        Console.WriteLine("Requesting map...");
+        await map_hub_conn.SendAsync("getMap");
 
         await base.OnInitializedAsync();
     }
