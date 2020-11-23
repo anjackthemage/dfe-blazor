@@ -99,9 +99,9 @@ namespace dfe.Client.Engine
         public PixelBuffer tex;
 
         // Number of Viewport columns
-        public int view_cols = 256;
+        public int view_cols = 320;
         // Number of Viewport rows
-        public int view_rows = 256;
+        public int view_rows = 240;
 
         // Rate of heading change during turns.
         public const float turnRate = 0.05f;
@@ -145,7 +145,7 @@ namespace dfe.Client.Engine
             }
 
             // Current Field of Vision
-            fov = (float)Math.PI / 4;
+            fov = (float)Math.PI / 2.8f;
 
             //for (int index = 0; index < 16; index++)
             //{
@@ -167,9 +167,7 @@ namespace dfe.Client.Engine
 
         public void rotObserver(Observer o, float a)
         {
-            Console.WriteLine("Starting rotation: {0}", o.a);
             o.a += a;
-            Console.WriteLine("Ending rotation: {0}", o.a);
             if (o.a >= 2 * (float)Math.PI)
             {
                 o.a -= (2 * (float)Math.PI);
@@ -209,7 +207,7 @@ namespace dfe.Client.Engine
         public void renderCols()
         {
             frameBuffer.Clear();
-            Color4i testColor = new Color4i(255, 128, 0);
+            Color4i testColor = new Color4i(0, 128, 64);
             Fog4i fog = new Fog4i(testColor, 0.5f);
             for (int x = 0; x < frameBuffer.Width; x++)
             {

@@ -164,13 +164,13 @@ namespace dfe.Client.Engine
             if (distance != 0) colHeight = (int)(Height / distance);
 
             // Calculate base step ratio for source texture read.
-            int fpSrcStep = (srcImage.Width << 16) / colHeight;
+            int fp_srcStep = (srcImage.Width << 16) / colHeight;
 
             // Handle columns too tall for the screen.
             if (colHeight > Height || distance == 0)
             {
                 // Adjust the source texture data offset.
-                fp_Src += fpSrcStep * ((colHeight - Height) >> 1);
+                fp_Src += fp_srcStep * ((colHeight - Height) >> 1);
                 // Clip the column height to screen height.
                 colHeight = Height;
             }
@@ -194,21 +194,52 @@ namespace dfe.Client.Engine
             int fp_srcCol = 0x0100 - fp_fogCol;
 
             int src;
-            // Draw the column.
-            for (int i = 0; i < colHeight; i++)
+
+            if (fp_srcStep >= 0x10000)
             {
-                src = (fp_Src >> 16) << 2;
+                // Draw the column.
+                for (int i = 0; i < colHeight; i++)
+                {
 
-                fp_r = (srcImage.Pixels[src] * fp_srcCol) + fog_r;
-                fp_g = (srcImage.Pixels[src + 1] * fp_srcCol) + fog_g;
-                fp_b = (srcImage.Pixels[src + 2] * fp_srcCol) + fog_b;
+                    src = (fp_Src >> 16) << 2;
+                    fp_r = (srcImage.Pixels[src] * fp_srcCol) + fog_r;
+                    fp_g = (srcImage.Pixels[src + 1] * fp_srcCol) + fog_g;
+                    fp_b = (srcImage.Pixels[src + 2] * fp_srcCol) + fog_b;
 
-                Pixels[dst] = (byte)(fp_r >> 8);
-                Pixels[dst + 1] = (byte)(fp_g >> 8);
-                Pixels[dst + 2] = (byte)(fp_b >> 8);
-                Pixels[dst + 3] = 255;
-                fp_Src += fpSrcStep;
-                dst += Stride;
+                    Pixels[dst] = (byte)(fp_r >> 8);
+                    Pixels[dst + 1] = (byte)(fp_g >> 8);
+                    Pixels[dst + 2] = (byte)(fp_b >> 8);
+                    Pixels[dst + 3] = 255;
+                    fp_Src += fp_srcStep;
+                    dst += Stride;
+                }
+            }
+            else {
+                // Compressed Column Drawing
+                int fp_nextSrc;
+                byte r, g, b;
+                // Draw the column.
+                for (int i = 0; i < colHeight;)
+                {
+                    fp_nextSrc = (fp_Src + 0x10000) & 0xFFF0000;
+                    src = (fp_Src >> 16) << 2;
+                    fp_r = ((srcImage.Pixels[src] * fp_srcCol) + fog_r) >> 8;
+                    fp_g = ((srcImage.Pixels[src + 1] * fp_srcCol) + fog_g) >> 8;
+                    fp_b = ((srcImage.Pixels[src + 2] * fp_srcCol) + fog_b) >> 8;
+                    r = (byte)fp_r;
+                    g = (byte)fp_g;
+                    b = (byte)fp_b;
+                    while (fp_Src < fp_nextSrc && i < colHeight)
+                    {
+                        Pixels[dst] = r;
+                        Pixels[dst + 1] = g;
+                        Pixels[dst + 2] = b;
+                        Pixels[dst + 3] = 255;
+                        fp_Src += fp_srcStep;
+                        dst += Stride;
+                        i++;
+                    }
+                }
             }
         }
 
