@@ -1,24 +1,61 @@
 ﻿@page "/"
 
 @using Engine;
+@using Microsoft.AspNetCore.SignalR.Client;
 
 @inject IJSRuntime JsRuntime;
+@inject NavigationManager NavigationManager
 
 
 <canvas tabindex="0" id="game_canvas" width="256" height="256" @ref="render_canvas" @onkeydown="handleKeyDown" @onkeyup="handleKeyUp"></canvas>
 
+<div>
+    <label>
+        User: 
+        <input @bind="user_input" />
+    </label>
+</div>
+<div>
+    <label>
+        Message:
+        <input @bind="msg_input" size="50" />
+    </label>
+</div>
+<button @onclick="sendMsg" disabled="@(!isConnected)">Send</button>
+
+<hr />
+
+<ul>
+    @foreach (var message in messages)
+    {
+        <li>@message</li>
+    }
+</ul>
+
 @code {
     protected ElementReference render_canvas;
 
-
-
-    Tracer ray_tracer;
+    private Tracer ray_tracer;
+    // network
+    private HubConnection chat_hub_conn;
+    private List<string> messages = new List<string>();
+    private string user_input;
+    private string msg_input;
 
     protected override async Task OnInitializedAsync()
     {
         ray_tracer = new Tracer();
 
-        //await JsRuntime.InvokeAsync<object>("initGame", DotNetObjectReference.Create(this));
+        chat_hub_conn = new HubConnectionBuilder().WithUrl(NavigationManager.ToAbsoluteUri("/chathub")).Build();
+
+        chat_hub_conn.On<string, string>("receiveMessage", (user, MessageProcessingHandler) =>
+        {
+            var encoded_msg = $"{user}: {MessageProcessingHandler}";
+            messages.Add(encoded_msg);
+            StateHasChanged();
+        });
+
+        await chat_hub_conn.StartAsync();
 
         await base.OnInitializedAsync();
     }
@@ -84,4 +121,21 @@
                 break;
         }
     }
+
+
+    // Chat Begin
+
+    public async Task sendMsg()
+    {
+        await chat_hub_conn.SendAsync("sendMessage", user_input, msg_input);
+    }
+
+    public bool isConnected => chat_hub_conn.State == HubConnectionState.Connected;
+
+    public async ValueTask DisposeAsync()
+    {
+        await chat_hub_conn.DisposeAsync();
+    }
+
+    // Chat End
 }
