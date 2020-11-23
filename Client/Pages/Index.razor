@@ -88,8 +88,7 @@
     public async ValueTask update(double time_stamp)
     {
         ray_tracer.updateObserver();
-        ray_tracer.buildRayBuffer();
-        ray_tracer.renderCols();
+        ray_tracer.render();
         ray_tracer.presentScreen(JsRuntime);
     }
 
