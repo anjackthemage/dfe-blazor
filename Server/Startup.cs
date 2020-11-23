@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System.Linq;
 using dfe.Server.Hubs;
+using dfe.Shared;
 
 namespace dfe.Server
 {
@@ -15,6 +16,8 @@ namespace dfe.Server
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
+
+            Map.current = new Map(16, 16);
         }
 
         public IConfiguration Configuration { get; }
@@ -63,6 +66,7 @@ namespace dfe.Server
                 endpoints.MapRazorPages();
                 endpoints.MapControllers();
                 endpoints.MapHub<ChatHub>("/chathub");
+                endpoints.MapHub<MapHub>("/maphub");
                 endpoints.MapFallbackToFile("index.html");
             });
         }

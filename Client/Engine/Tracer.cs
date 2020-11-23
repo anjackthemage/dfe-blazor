@@ -38,23 +38,23 @@ namespace dfe.Client.Engine
 
         public level_map(int width, int height)
         {
-            Random rand = new Random();
+            //Random rand = new Random();
 
             this.w = width;
             this.h = height;
             this.d = new float[width * height];
 
-            for (int index = 0; index < this.w * this.h; index++)
-            {
-                if (rand.NextDouble() < 0.09)
-                {
-                    this.d[index] = 1;
-                }
-                else
-                {
-                    this.d[index] = 0;
-                }
-            }
+            //for (int index = 0; index < this.w * this.h; index++)
+            //{
+            //    if (rand.NextDouble() < 0.09)
+            //    {
+            //        this.d[index] = 1;
+            //    }
+            //    else
+            //    {
+            //        this.d[index] = 0;
+            //    }
+            //}
         }
     }
 
@@ -126,8 +126,8 @@ namespace dfe.Client.Engine
             frameBuffer = new PixelBuffer(view_cols, view_rows);
             tex = new PixelBuffer(16, 16);
             tex.Clear(new Color4i(0, 64, 128));
-            for(int y = 0; y < 16; y++)
-                for(int x = 0; x < 16; x++)
+            for (int y = 0; y < 16; y++)
+                for (int x = 0; x < 16; x++)
                 {
                     byte c = (byte)(y * 16);
                     tex.DrawPoint(x, y, new Color4i(c, c, c));
@@ -147,14 +147,13 @@ namespace dfe.Client.Engine
             // Current Field of Vision
             fov = (float)Math.PI / 4;
 
-            // Initialize map data.
-            for (int index = 0; index < 16; index++)
-            {
-                lvl_test.d[index] = 1;
-                lvl_test.d[index + 240] = 1;
-                lvl_test.d[index * 16] = 1;
-                lvl_test.d[15 + (index * 16)] = 1;
-            }
+            //for (int index = 0; index < 16; index++)
+            //{
+            //    lvl_test.d[index] = 1;
+            //    lvl_test.d[index + 240] = 1;
+            //    lvl_test.d[index * 16] = 1;
+            //    lvl_test.d[15 + (index * 16)] = 1;
+            //}
         }
 
         /// <summary>
