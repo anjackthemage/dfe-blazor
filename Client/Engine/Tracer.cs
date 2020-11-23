@@ -210,11 +210,13 @@ namespace dfe.Client.Engine
         public void renderCols()
         {
             frameBuffer.Clear();
-            Color4i cyan = new Color4i(0, 128, 255);
+            Color4i testColor = new Color4i(255, 128, 0);
+            Fog4i fog = new Fog4i(testColor, 0.5f);
             for (int x = 0; x < frameBuffer.Width; x++)
             {
                 //frameBuffer.ShadeWall(x, ray_buffer[x].dis, cyan);
-                frameBuffer.RenderWall(x, ray_buffer[x].dis, ray_buffer[x].texOfs, tex);
+                //frameBuffer.TexturedWall(x, ray_buffer[x].dis, ray_buffer[x].texOfs, tex);
+                frameBuffer.ShadeTexturedWall(x, ray_buffer[x].dis, ray_buffer[x].texOfs, tex, fog);
             }
         }
 
