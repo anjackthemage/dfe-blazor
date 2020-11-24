@@ -11,10 +11,7 @@ namespace dfe.Server.Hubs
     {
         public async Task getMap()
         {
-
-            Console.WriteLine("Sending map!");
             await Clients.Caller.SendAsync("receiveMap", Map.current.map_contents);
-            Console.WriteLine("Map sent!");
         }
     }
 }

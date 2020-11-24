@@ -36,7 +36,7 @@ namespace dfe.Client.Engine
             if (intensity < 0) i = 0;
             else if (intensity >= 1) i = 128;
             else { i = (byte)(intensity * 128f); }
-            Console.WriteLine(intensity);
+            //Console.WriteLine(intensity);
         }
     }
 
