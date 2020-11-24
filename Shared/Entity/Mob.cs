@@ -8,18 +8,7 @@ using dfe.Shared.Utils.ExtensionMethods;
 
 namespace dfe.Shared.Entity
 {
-    public struct coord
-    {
-        public float x;
-        public float y;
-
-        public coord(float x_new, float y_new)
-        {
-            this.x = x_new;
-            this.y = y_new;
-        }
-    }
-
+    [ObsoleteAttribute("This is deprecated. Use Vector2 instead.")]
     public struct vector
     {
         public float x;
