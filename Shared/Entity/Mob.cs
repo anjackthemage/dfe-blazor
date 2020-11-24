@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Numerics;
+using dfe.Shared.Utils.ExtensionMethods;
 
 namespace dfe.Shared.Entity
 {
@@ -57,10 +59,10 @@ namespace dfe.Shared.Entity
 
     public class Mob : Entity
     {
-        public static readonly vector RIGHT = new vector(1, 0);
-        public coord position;
+        public static readonly Vector2 RIGHT = new Vector2(1.0f, 0.0f); // new vector(1, 0);
+        public Vector2 position;
         // Heading of this mob - Should always be normalized.
-        public vector heading;
+        public Vector2 heading;
         public float angle;
 
         /// <summary>
@@ -68,7 +70,7 @@ namespace dfe.Shared.Entity
         /// </summary>
         public Mob()
         {
-            this.position = new coord(0, 0);
+            this.position = new Vector2(0, 0);
             this.angle = 0.0f;
         }
 
@@ -80,7 +82,7 @@ namespace dfe.Shared.Entity
         /// <param name="angle_initial">Initial angle mob will face.</param>
         public Mob(float x_initial, float y_initial, float angle_initial)
         {
-            this.position = new coord(x_initial, y_initial);
+            this.position = new Vector2(x_initial, y_initial);
             this.angle = angle_initial;
         }
 
@@ -89,7 +91,7 @@ namespace dfe.Shared.Entity
         /// </summary>
         /// <param name="position_initial">Initial location of mob.</param>
         /// <param name="angle_initial">Initial angle mob will face.</param>
-        public Mob(coord position_initial, float angle_initial)
+        public Mob(Vector2 position_initial, float angle_initial)
         {
             this.position = position_initial;
             this.angle = angle_initial;
@@ -110,8 +112,8 @@ namespace dfe.Shared.Entity
             {
                 this.angle += (2 * (float)Math.PI);
             }
-            heading.x = RIGHT.x;
-            heading.y = RIGHT.y;
+            heading.X = RIGHT.X;
+            heading.Y = RIGHT.Y;
             heading.rotate(angle);
         }
 
@@ -121,8 +123,8 @@ namespace dfe.Shared.Entity
         /// <param name="distance"></param>
         public void walk(float distance)
         {
-            position.x += (heading.x * distance);
-            position.y += (heading.y * distance);
+            position.X += (heading.X * distance);
+            position.Y += (heading.Y * distance);
         }
         public void updatePosition()
         {

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using dfe.Shared;
 using dfe.Shared.Entity;
+using System.Numerics;
 
 namespace dfe.Client.Engine
 {
@@ -222,10 +223,10 @@ namespace dfe.Client.Engine
         float testd = 4;
         public ray rayCast(Mob obs, float ang)
         {
-            coord pos = obs.position;
+            Vector2 pos = obs.position;
             // Find the map cell that the observer is in.
-            float obsGridX = pos.x / grid_x;
-            float obsGridY = pos.y / grid_y;
+            float obsGridX = pos.X / grid_x;
+            float obsGridY = pos.Y / grid_y;
 
             // the '>> 0' is a method to floor to an integer.
             int mx = (int)obsGridX; //obsGridX << 0;
