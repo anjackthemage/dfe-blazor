@@ -78,7 +78,6 @@ namespace dfe.Client.Engine
         public float texOfs;
         // The distance, in map units, from the cast point.
         public float dis;
-
         public ray(float x_coord, float y_coord, int map_x, int map_y, bool hit, float new_d)
         {
             this.x = x_coord;
@@ -207,6 +206,7 @@ namespace dfe.Client.Engine
         public void renderCols()
         {
             frameBuffer.Clear();
+            Color4i white = new Color4i(255, 255, 255);
             Color4i testColor = new Color4i(0, 128, 64);
             Fog4i fog = new Fog4i(testColor, 0.5f);
             for (int x = 0; x < frameBuffer.Width; x++)
@@ -215,8 +215,9 @@ namespace dfe.Client.Engine
                 //frameBuffer.TexturedWall(x, ray_buffer[x].dis, ray_buffer[x].texOfs, tex);
                 frameBuffer.ShadeTexturedWall(x, ray_buffer[x].dis, ray_buffer[x].texOfs, tex, fog);
             }
+            frameBuffer.DrawRectPerspective(160, testd, 256, 256, ray_buffer, white);
         }
-
+        float testd = 4;
         public ray rayCast(Observer obs, float ang)
         {
             // Find the map cell that the observer is in.

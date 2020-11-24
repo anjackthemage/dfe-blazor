@@ -40,6 +40,33 @@ namespace dfe.Client.Engine
         }
     }
 
+    /// <summary>
+    /// Clipping rectangle structure.
+    /// Values are stored in screen pixel coordinates.
+    /// </summary>
+    public struct ClipRect
+    {
+        public int x;
+        public int y;
+        public int w;
+        public int h;
+        public int left;
+        public int right;
+        public int top;
+        public int bot;
+        public ClipRect(int x, int y, int w, int h)
+        {
+            this.x = x;
+            this.y = y;
+            this.w = w;
+            this.h = h;
+            left = x;
+            right = x + w;
+            top = y;
+            bot = y + h;
+        }
+    }
+
     public class PixelBuffer
     {
         public const int BPP = 4;
@@ -73,6 +100,64 @@ namespace dfe.Client.Engine
             Pixels[i + 3] = 255;
         }
 
+        public void DrawRect(int x, int y, int w, int h, Color4i c)
+        {
+            // Find clipping rectangle.
+            int left = Math.Max(x, 0);
+            int right = Math.Min(x + w, Width);
+            int top = Math.Max(y, 0);
+            int bot = Math.Min(y + h, Height);
+            int clipH = bot - top;
+            int clipW = right - left;
+
+            int dy = top * Stride;
+            int dstA = dy + (left << 2);
+            int dstB = dy + (right << 2);
+            // Draw cols.
+            for (int i = 0; i < clipH; i++)
+            {
+                if (left == x)
+                {
+                    Pixels[dstA + 0] = c.r;
+                    Pixels[dstA + 1] = c.g;
+                    Pixels[dstA + 2] = c.b;
+                    Pixels[dstA + 3] = c.a;
+                }
+                if (right == x + w)
+                {
+                    Pixels[dstB + 0] = c.r;
+                    Pixels[dstB + 1] = c.g;
+                    Pixels[dstB + 2] = c.b;
+                    Pixels[dstB + 3] = c.a;
+                }
+                dstA += Stride;
+                dstB += Stride;
+            }
+
+            dstB = dy + (left << 2);
+            // Draw rows
+            for(int i = 0; i < clipW; i++)
+            {
+                if(bot == (y + h))
+                {
+                    Pixels[dstA + 0] = c.r;
+                    Pixels[dstA + 1] = c.g;
+                    Pixels[dstA + 2] = c.b;
+                    Pixels[dstA + 3] = c.a;
+
+                }
+                if (top == y)
+                {
+                    Pixels[dstB + 0] = c.r;
+                    Pixels[dstB + 1] = c.g;
+                    Pixels[dstB + 2] = c.b;
+                    Pixels[dstB + 3] = c.a;
+                }
+                dstA += BPP;
+                dstB += BPP;
+            }
+
+        }
         public void Clear()
         {
             for (int i = 0; i < Width * Height * BPP; i += BPP)
@@ -243,5 +328,46 @@ namespace dfe.Client.Engine
             }
         }
 
+        // Worker clipping rectangle.
+        private static ClipRect cRect = new ClipRect();
+        private static Color4i red = new Color4i(255, 0, 0);
+        private static Color4i white = new Color4i(255, 255, 255);
+        public void DrawRectPerspective(int x, float distance, int w, int h, ray[] ray_buffer, Color4i c) 
+        {
+            Console.WriteLine(distance);
+            w = (int)(w / distance);
+            h = (int)(h / distance);
+            int hw = (int)((w >> 1));
+            int hh = (int)((h >> 1));
+
+            cRect.x = x - hw;
+            cRect.y = (Height >> 1) - hh;
+            cRect.w = w;
+            cRect.h = h;
+            DrawRect(cRect.x, cRect.y, cRect.w, cRect.h, red);
+
+            cRect.left = Math.Max(cRect.x, 0);
+            cRect.right = Math.Min(cRect.x + cRect.w, Width - 1);
+            cRect.top = cRect.y;
+            cRect.bot = cRect.y + cRect.h;
+            // clip left
+            for(int i = cRect.left; i < cRect.right; i++)
+            {
+                if (ray_buffer[i].dis <= distance)
+                    cRect.left = i;
+                else break;
+            }
+            // clip right
+            for (int i = cRect.left + 1; i < cRect.right; i++)
+            {
+                if (ray_buffer[i].dis <= distance)
+                {
+                    cRect.right = i;
+                    break;
+                }
+            }
+            DrawRect(cRect.left, cRect.top, cRect.right - cRect.left, cRect.bot - cRect.top, c);
+
+        }
     }
 }
