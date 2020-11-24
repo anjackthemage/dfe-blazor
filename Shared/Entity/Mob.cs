@@ -33,17 +33,22 @@ namespace dfe.Shared.Entity
         }
 
         /// <summary>
-        /// Create a mob with a specific position and angle.
+        /// Create a mob at specified X and Y coordinates, facing specified direction.
         /// </summary>
-        /// <param name="x_initial"></param>
-        /// <param name="y_initial"></param>
-        /// <param name="angle_initial"></param>
+        /// <param name="x_initial">X coordinate where mob will be placed.</param>
+        /// <param name="y_initial">Y coordinate where mob will be placed</param>
+        /// <param name="angle_initial">Initial angle mob will face.</param>
         public Mob(float x_initial, float y_initial, float angle_initial)
         {
             this.position = new coord(x_initial, y_initial);
             this.angle = angle_initial;
         }
 
+        /// <summary>
+        /// Create a mob at specified position, facing specified direction.
+        /// </summary>
+        /// <param name="position_initial">Initial location of mob.</param>
+        /// <param name="angle_initial">Initial angle mob will face.</param>
         public Mob(coord position_initial, float angle_initial)
         {
             this.position = position_initial;
@@ -65,6 +70,11 @@ namespace dfe.Shared.Entity
             {
                 this.angle += (2 * (float)Math.PI);
             }
+        }
+
+        public void updatePosition()
+        {
+            
         }
     }
 }
