@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using dfe.Shared;
+using dfe.Shared.Entity;
 
 namespace dfe.Client.Engine
 {
@@ -109,8 +111,8 @@ namespace dfe.Client.Engine
         public const int grid_y = 16;
         // Controller!
         public input_ctrl keyb = new input_ctrl();
-        // Observer object.
-        public Observer obs = new Observer(128.5f, 128.5f, 0.0f);
+        // Observer Mob - This should be the player.
+        public Mob self = new Mob(128, 128, 0);
         // Map Object
         public level_map lvl_test = new level_map(16, 16);
         // Ray Data Array
@@ -184,12 +186,12 @@ namespace dfe.Client.Engine
                 ray_buffer = new ray[view_cols];
 
             float ang_step = fov / view_cols;
-            float ray_angle = obs.a - (fov / 2);
+            float ray_angle = self.angle - (fov / 2);
             float ang_diff = -(fov / 2);
 
             for (int index = 0; index < view_cols; index++)
             {
-                ray_buffer[index] = rayCast(obs, ray_angle);
+                ray_buffer[index] = rayCast(self, ray_angle);
                 // Dewarp
                 ray_buffer[index].dis = ray_buffer[index].dis * (float)Math.Cos(ang_diff);
                 ray_angle += ang_step;
@@ -218,11 +220,12 @@ namespace dfe.Client.Engine
             frameBuffer.DrawRectPerspective(160, testd, 256, 256, ray_buffer, white);
         }
         float testd = 4;
-        public ray rayCast(Observer obs, float ang)
+        public ray rayCast(Mob obs, float ang)
         {
+            coord pos = obs.position;
             // Find the map cell that the observer is in.
-            float obsGridX = obs.x / grid_x;
-            float obsGridY = obs.y / grid_y;
+            float obsGridX = pos.x / grid_x;
+            float obsGridY = pos.y / grid_y;
 
             // the '>> 0' is a method to floor to an integer.
             int mx = (int)obsGridX; //obsGridX << 0;
@@ -348,25 +351,23 @@ namespace dfe.Client.Engine
             if (keyb.u == true)
             {
                 //Console.WriteLine("MOVE FORWARD");
-                obs.x += (float)Math.Cos(obs.a);
-                obs.y += (float)Math.Sin(obs.a);
+                self.walk(1);
             }
             else if (keyb.d == true)
             {
                 //Console.WriteLine("MOVE BACKWARD");
-                obs.x -= (float)Math.Cos(obs.a);
-                obs.y -= (float)Math.Sin(obs.a);
+                self.walk(-1);
             }
 
             if (keyb.l == true)
             {
                 //Console.WriteLine("TURN LEFT");
-                rotObserver(obs, -turnRate);
+                self.rotate(-turnRate);
             }
             else if (keyb.r == true)
             {
                 //Console.WriteLine("TURN RIGHT");
-                rotObserver(obs, turnRate);
+                self.rotate(turnRate);
             }
         }
     }

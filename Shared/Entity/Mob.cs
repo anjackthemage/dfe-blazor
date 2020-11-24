@@ -17,11 +17,51 @@ namespace dfe.Shared.Entity
             this.y = y_new;
         }
     }
+
+    public struct vector
+    {
+        public float x;
+        public float y;
+        public vector(float x_new, float y_new)
+        {
+            x = x_new;
+            y = y_new;
+        }
+        /// <summary>
+        /// Normalizes this vector.
+        /// </summary>
+        public void normalize()
+        {
+            if(x != 0 || y != 0)
+            {
+                float d = (float)Math.Sqrt(x + y);
+                x = x / d;
+                y = y / d;
+            }
+        }
+
+        /// <summary>
+        /// Rotate this vector by the given number of radians.
+        /// </summary>
+        /// <param name="angle">An angle, in radians.</param>
+        public void rotate(float angle)
+        {
+            float cos = (float)Math.Cos(angle);
+            float sin = (float)Math.Sin(angle);
+            float nx = (x * cos) - (y * sin);
+            float ny = (x * sin) + (y * cos);
+            x = nx;
+            y = ny;
+        }
+    }
+
     public class Mob : Entity
     {
-        public coord position { get; private set; }
-
-        public float angle { get; private set; }
+        public static readonly vector RIGHT = new vector(1, 0);
+        public coord position;
+        // Heading of this mob - Should always be normalized.
+        public vector heading;
+        public float angle;
 
         /// <summary>
         /// Create a Mob.
@@ -70,11 +110,23 @@ namespace dfe.Shared.Entity
             {
                 this.angle += (2 * (float)Math.PI);
             }
+            heading.x = RIGHT.x;
+            heading.y = RIGHT.y;
+            heading.rotate(angle);
         }
 
+        /// <summary>
+        /// Walk along the current view angle 
+        /// </summary>
+        /// <param name="distance"></param>
+        public void walk(float distance)
+        {
+            position.x += (heading.x * distance);
+            position.y += (heading.y * distance);
+        }
         public void updatePosition()
         {
-            
+            // Assuming this is for velocity in the future? :3
         }
     }
 }
