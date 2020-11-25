@@ -130,8 +130,9 @@ namespace dfe.Client.Engine
             for (int y = 0; y < 16; y++)
                 for (int x = 0; x < 16; x++)
                 {
+                    byte b = (byte)(x * 16);
                     byte c = (byte)(y * 16);
-                    tex.DrawPoint(x, y, new Color4i(c, c, c));
+                    tex.DrawPoint(x, y, new Color4i(0, b, c));
                 }
 
             tex.DrawPoint(0, 0, new Color4i(255, 0, 0));
@@ -210,16 +211,18 @@ namespace dfe.Client.Engine
             frameBuffer.Clear();
             Color4i white = new Color4i(255, 255, 255);
             Color4i testColor = new Color4i(0, 128, 64);
-            Fog4i fog = new Fog4i(testColor, 0.5f);
-            for (int x = 0; x < frameBuffer.Width; x++)
+            Fog4i fog = new Fog4i(testColor, 0.0f);
+            for (int x = 0; x < frameBuffer.width; x++)
             {
                 //frameBuffer.ShadeWall(x, ray_buffer[x].dis, cyan);
                 //frameBuffer.TexturedWall(x, ray_buffer[x].dis, ray_buffer[x].texOfs, tex);
                 frameBuffer.ShadeTexturedWall(x, ray_buffer[x].dis, ray_buffer[x].texOfs, tex, fog);
             }
-            frameBuffer.DrawRectPerspective(160, testd, 256, 256, ray_buffer, white);
+            //frameBuffer.DrawRectPerspective(160, testd, 256, 256, ray_buffer, white);
+            frameBuffer.DrawSpritePerspective(160, (float)Math.Sin(testd), ray_buffer, tex);
+            testd += 0.01f;
         }
-        float testd = 4;
+        float testd = 1;
         public ray rayCast(Mob obs, float ang)
         {
             coord pos = obs.position;
@@ -342,7 +345,7 @@ namespace dfe.Client.Engine
         public void presentScreen(IJSRuntime js)
         {
             IJSUnmarshalledRuntime umjs = (IJSUnmarshalledRuntime)js;
-            object result = umjs.InvokeUnmarshalled<byte[], int, int, object>("blitScreen", frameBuffer.Pixels, frameBuffer.Width, frameBuffer.Height);
+            object result = umjs.InvokeUnmarshalled<byte[], int, int, object>("blitScreen", frameBuffer.pixels, frameBuffer.width, frameBuffer.height);
         }
 
         public void updateObserver()
