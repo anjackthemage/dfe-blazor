@@ -11,6 +11,7 @@
     <link href="dfe.Client.styles.css" rel="stylesheet" />
 
     <script type="text/javascript" src="src/gameview.js"></script>
+    <script type="text/javascript" src="src/gameaudio.js"></script>
 
     <script>
 
@@ -25,18 +26,6 @@
             console.log(canvas_ref);
             initCanvas(canvas_ref);
             window.requestAnimationFrame(doGameLoop);
-        };
-
-        window.playAudio = (uri) => {
-            var audio = new Audio(uri);
-
-            audio.addEventListener("canplay", (event) => {
-                audio.play();
-            });
-
-            audio.loop = true;
-            audio.load();
-            
         };
 
     </script>

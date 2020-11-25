@@ -49,8 +49,15 @@
     </ul>
 </div>
 
+<div id="audio-elements">
+    <input type="checkbox" @onchange="muteClicked" checked/> <label>Mute</label>
+    @* For organization purposes, this will contain the audio elements until we have a better audio system in place. *@
+</div>
+
 @code {
     protected ElementReference render_canvas;
+
+    private bool b_is_audio_muted = true;
 
     private Tracer ray_tracer;
     // network
@@ -81,7 +88,7 @@
 
         map_hub_conn.On<float[]>("receiveMap", (data) =>
         {
-            ray_tracer.lvl_test.d = data;
+            ray_tracer.lvl_test.map_contents = data;
         });
 
 
@@ -100,12 +107,19 @@
         }
     }
 
+    private async void muteClicked(ChangeEventArgs event_args)
+    {
+        b_is_audio_muted = bool.Parse(event_args.Value.ToString());
+        await JsRuntime.InvokeVoidAsync("setAllAudioMute", b_is_audio_muted);
+    }
+
     private async void showGame()
     {
         this.game_started = true;
         StateHasChanged();
 
         await JsRuntime.InvokeVoidAsync("playAudio", "/audio/bgm_test.mp3");
+        await JsRuntime.InvokeVoidAsync("setAllAudioMute", b_is_audio_muted);
     }
 
     [JSInvokable]

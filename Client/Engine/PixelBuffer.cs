@@ -334,7 +334,7 @@ namespace dfe.Client.Engine
         private static Color4i white = new Color4i(255, 255, 255);
         public void DrawRectPerspective(int x, float distance, int w, int h, ray[] ray_buffer, Color4i c) 
         {
-            Console.WriteLine(distance);
+            //Console.WriteLine(distance);
             w = (int)(w / distance);
             h = (int)(h / distance);
             int hw = (int)((w >> 1));

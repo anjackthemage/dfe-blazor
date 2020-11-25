@@ -8,7 +8,7 @@ using dfe.Shared.Utils.ExtensionMethods;
 
 namespace dfe.Shared.Entity
 {
-    [ObsoleteAttribute("This is deprecated. Use Vector2 instead.")]
+    [ObsoleteAttribute("dfe.Shared.Entity.vector is deprecated. Use Vector2 instead.")]
     public struct vector
     {
         public float x;

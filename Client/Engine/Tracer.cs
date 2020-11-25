@@ -4,7 +4,7 @@ using System;
 //using System.Collections.Generic;
 //using System.Linq;
 //using System.Threading.Tasks;
-//using dfe.Shared;
+using dfe.Shared;
 using dfe.Shared.Entity;
 using System.Numerics;
 
@@ -33,6 +33,7 @@ namespace dfe.Client.Engine
         }
     }
 
+    [ObsoleteAttribute("dfe.Client.Engine.level_map is deprecated. Use Map instead.")]
     public struct level_map
     {
         public int w;
@@ -115,7 +116,7 @@ namespace dfe.Client.Engine
         // Observer Mob - This should be the player.
         public Mob self = new Mob(128, 128, 0);
         // Map Object
-        public level_map lvl_test = new level_map(16, 16);
+        public Map lvl_test = new Map(16, 16);
         // Ray Data Array
         public ray[] ray_buffer;
         // Field of View
@@ -280,7 +281,7 @@ namespace dfe.Client.Engine
             var hit = new ray(0, 0, 0, 0, false, 0);
 
             var side = 0;
-            while (mx >= 0 && mx < lvl_test.w && my >= 0 && my < lvl_test.h)
+            while (mx >= 0 && mx < lvl_test.width && my >= 0 && my < lvl_test.height)
             {
                 if (iDeltaX < iDeltaY)
                 {
@@ -294,7 +295,7 @@ namespace dfe.Client.Engine
                     my += stepY;
                     side = 1;
                 }
-                if (lvl_test.d[mx + (my * lvl_test.w)] == 1)
+                if (lvl_test.map_contents[mx + (my * lvl_test.width)] == 1)
                 {
                     hit.map_x = mx;
                     hit.map_y = my;
