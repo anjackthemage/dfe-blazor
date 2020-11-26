@@ -22,19 +22,14 @@ function blitScreen(pixelData, width, height) {
 	ctx.putImageData(screenImageData, 0, 0);
 };
 
+// -- Mouse Capture --
 let pointerLocked = false; 
+
 function captureMouse(pointerId) {
 	pointerId.requestPointerLock = pointerId.requestPointerLock ||
 								   pointerId.mozRequestPointerLock ||
 								   pointerId.webkitRequestPointerLock;
 	pointerId.requestPointerLock();
-};
-
-function pollMouse() {
-	if (pointerLocked === false)
-		return 0;
-	else
-		return mouseDelta;
 };
 
 function lockMouse() {
@@ -52,3 +47,11 @@ function lockMouse() {
 function handleMouse(me_args) {
 	mouseDelta = me_args.movementX;
 };
+
+function pollMouse() {
+	if (pointerLocked === false)
+		return 0;
+	else
+		return mouseDelta;
+};
+

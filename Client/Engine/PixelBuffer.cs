@@ -5,10 +5,13 @@ using System.Threading.Tasks;
 
 namespace dfe.Client.Engine
 {
-    public struct Color4i
+    /// <summary>
+    /// An RGBA color with byte components.
+    /// </summary>
+    public struct color4i
     {
         public byte r, g, b, a;
-        public Color4i(byte red, byte green, byte blue)
+        public color4i(byte red, byte green, byte blue)
         {
             r = red;
             g = green;
@@ -16,11 +19,13 @@ namespace dfe.Client.Engine
             a = 255;
         }
     }
-
-    public struct Fog4i
+    /// <summary>
+    /// Fog color and intensity structure.
+    /// </summary>
+    public struct fog4i
     {
         public byte r, g, b, i;
-        public Fog4i(byte red, byte green, byte blue)
+        public fog4i(byte red, byte green, byte blue)
         {
             r = red;
             g = green;
@@ -28,7 +33,7 @@ namespace dfe.Client.Engine
             i = 0x80;
         }
 
-        public Fog4i(Color4i color, float intensity)
+        public fog4i(color4i color, float intensity)
         {
             r = color.r;
             g = color.g;
@@ -74,11 +79,27 @@ namespace dfe.Client.Engine
 
     public class PixelBuffer
     {
+        // Bytes per pixel
         public const int bpp = 4;
+        // Worker clipping rectangle - Assume this to be volatile.
+        private static ClipRect cRect = new ClipRect();
+        // Debugging color for bounds of an obscured sprite.
+        private static color4i clippedColor = new color4i(255, 0, 0);
+        // Debugging color for bounds of a visible sprite.
+        private static color4i visibleColor = new color4i(255, 255, 255);
+        // Overall width of the buffer, in pixels.
         public readonly int width;
+        // Overall height of the buffer, in pixels.
         public readonly int height;
+        // The stride of the buffer -or- the data size of one row of pixels in bytes.
         public readonly int stride;
+        // The RGBA pixel buffer, each pixel is 4 bytes in RGBA order.
         public byte[] pixels;
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="width">Overall width of the buffer, in pixels.</param>
+        /// <param name="height">Overall height of the buffer, in pixels.</param>
         public PixelBuffer(int width, int height)
         {
             this.width = width;
@@ -86,8 +107,40 @@ namespace dfe.Client.Engine
             stride = width * bpp;
             pixels = new byte[width * height * bpp];
         }
-
-        public void DrawPoint(int x, int y, Color4i color)
+        /// <summary>
+        /// Sets the color of a single pixel in the buffer.
+        /// </summary>
+        /// <param name="x">The X coordinate of the target pixel.</param>
+        /// <param name="y">The Y coordinate of teh target pixel.</param>
+        /// <param name="color">The desired RGBA pixel color.</param>
+        /// <summary>
+        /// Clears the buffer to black.
+        /// </summary>
+        public void Clear()
+        {
+            for (int i = 0; i < width * height * bpp; i += bpp)
+            {
+                pixels[i] = 0;
+                pixels[i + 1] = 0;
+                pixels[i + 2] = 0;
+                pixels[i + 3] = 255;
+            }
+        }
+        /// <summary>
+        /// Clears the buffer to a desired color.
+        /// </summary>
+        /// <param name="color">The desired RGBA color.</param>
+        public void Clear(color4i color)
+        {
+            for (int i = 0; i < width * height * bpp; i += bpp)
+            {
+                pixels[i] = color.r;
+                pixels[i + 1] = color.g;
+                pixels[i + 2] = color.b;
+                pixels[i + 3] = color.a;
+            }
+        }
+        public void DrawPoint(int x, int y, color4i color)
         {
             int i = (x << 2) + (y * stride) % pixels.Length;
             pixels[i] = color.r;
@@ -95,7 +148,14 @@ namespace dfe.Client.Engine
             pixels[i + 2] = color.b;
             pixels[i + 3] = color.a;
         }
-
+        /// <summary>
+        /// Sets the color of a single pixel in the buffer.
+        /// </summary>
+        /// <param name="x">The X coordinate of the target pixel.</param>
+        /// <param name="y">The Y coordinate of teh target pixel.</param>
+        /// <param name="r">Red intensity (0-255)</param>
+        /// <param name="g">Green intensity (0-255)</param>
+        /// <param name="b">Blue intensity (0-255)</param>
         public void DrawPoint(int x, int y, byte r, byte g, byte b)
         {
             if (x < 0 || x >= width || y < 0 || y >= height)
@@ -107,14 +167,21 @@ namespace dfe.Client.Engine
             pixels[i + 2] = b;
             pixels[i + 3] = 255;
         }
-
-        public void DrawRect(int x, int y, int w, int h, Color4i c)
+        /// <summary>
+        /// Draws a rectangle
+        /// </summary>
+        /// <param name="x">Left edge coordinate of the rectangle.</param>
+        /// <param name="y">Top edge coordinate of teh rectangle.</param>
+        /// <param name="width">Width in pixels.</param>
+        /// <param name="height">Height in pixels.</param>
+        /// <param name="color">The desired RGBA color.</param>
+        public void DrawRect(int x, int y, int width, int height, color4i color)
         {
             // Find clipping rectangle.
             int left = Math.Max(x, 0);
-            int right = Math.Min(x + w, width - 1);
+            int right = Math.Min(x + width, this.width - 1);
             int top = Math.Max(y, 0);
-            int bot = Math.Min(y + h, height - 1);
+            int bot = Math.Min(y + height, this.height - 1);
             int clipH = bot - top;
             int clipW = right - left;
 
@@ -129,17 +196,17 @@ namespace dfe.Client.Engine
             {
                 if (left == x)
                 {
-                    pixels[dstA + 0] = c.r;
-                    pixels[dstA + 1] = c.g;
-                    pixels[dstA + 2] = c.b;
-                    pixels[dstA + 3] = c.a;
+                    pixels[dstA + 0] = color.r;
+                    pixels[dstA + 1] = color.g;
+                    pixels[dstA + 2] = color.b;
+                    pixels[dstA + 3] = color.a;
                 }
-                if (right == x + w)
+                if (right == x + width)
                 {
-                    pixels[dstB + 0] = c.r;
-                    pixels[dstB + 1] = c.g;
-                    pixels[dstB + 2] = c.b;
-                    pixels[dstB + 3] = c.a;
+                    pixels[dstB + 0] = color.r;
+                    pixels[dstB + 1] = color.g;
+                    pixels[dstB + 2] = color.b;
+                    pixels[dstB + 3] = color.a;
                 }
                 dstA += stride;
                 dstB += stride;
@@ -149,47 +216,77 @@ namespace dfe.Client.Engine
             // Draw rows
             for(int i = 0; i < clipW; i++)
             {
-                if(bot == (y + h))
+                if(bot == (y + height))
                 {
-                    pixels[dstA + 0] = c.r;
-                    pixels[dstA + 1] = c.g;
-                    pixels[dstA + 2] = c.b;
-                    pixels[dstA + 3] = c.a;
+                    pixels[dstA + 0] = color.r;
+                    pixels[dstA + 1] = color.g;
+                    pixels[dstA + 2] = color.b;
+                    pixels[dstA + 3] = color.a;
 
                 }
                 if (top == y)
                 {
-                    pixels[dstB + 0] = c.r;
-                    pixels[dstB + 1] = c.g;
-                    pixels[dstB + 2] = c.b;
-                    pixels[dstB + 3] = c.a;
+                    pixels[dstB + 0] = color.r;
+                    pixels[dstB + 1] = color.g;
+                    pixels[dstB + 2] = color.b;
+                    pixels[dstB + 3] = color.a;
                 }
                 dstA += bpp;
                 dstB += bpp;
             }
 
         }
-        public void Clear()
+        /// <summary>
+        /// Draws a bilboard rectangle with depth.
+        /// </summary>
+        /// <param name="screenX">X Coordinate of the rectangle's center</param>
+        /// <param name="distance">Distance from the camera to render.</param>
+        /// <param name="width">Width of the rectangle at distance = 1</param>
+        /// <param name="height">Height of the rectangle at distance = 1</param>
+        /// <param name="ray_buffer">A ray buffer to do distance clipping against.</param>
+        /// <param name="color">The color to render the rectangle.</param>
+        public void DrawRectPerspective(int screenX, float distance, int width, int height, ray[] ray_buffer, color4i color)
         {
-            for (int i = 0; i < width * height * bpp; i += bpp)
+            width = (int)(width / distance);
+            height = (int)(height / distance);
+            int hw = (int)((width >> 1));
+            int hh = (int)((height >> 1));
+
+            cRect.x = screenX - hw;
+            cRect.y = (this.height >> 1) - hh;
+            cRect.w = width;
+            cRect.h = height;
+            DrawRect(cRect.x, cRect.y, cRect.w, cRect.h, clippedColor);
+
+            cRect.left = Math.Max(cRect.x, 0);
+            cRect.right = Math.Min(cRect.x + cRect.w, this.width - 1);
+            cRect.top = cRect.y;
+            cRect.bot = cRect.y + cRect.h;
+            // clip left
+            for (int i = cRect.left; i < cRect.right; i++)
             {
-                pixels[i] = 0;
-                pixels[i + 1] = 0;
-                pixels[i + 2] = 0;
-                pixels[i + 3] = 255;
+                if (ray_buffer[i].dis <= distance)
+                    cRect.left = i;
+                else break;
             }
-        }
-        public void Clear(Color4i color)
-        {
-            for (int i = 0; i < width * height * bpp; i += bpp)
+            // clip right
+            for (int i = cRect.left + 1; i < cRect.right; i++)
             {
-                pixels[i] = color.r;
-                pixels[i + 1] = color.g;
-                pixels[i + 2] = color.b;
-                pixels[i + 3] = color.a;
+                if (ray_buffer[i].dis <= distance)
+                {
+                    cRect.right = i;
+                    break;
+                }
             }
+            DrawRect(cRect.left, cRect.top, cRect.right - cRect.left, cRect.bot - cRect.top, color);
         }
-        public void ShadeWall(int x, float distance, Color4i color)
+        /// <summary>
+        /// Renders a column of pixels in perspective at column x
+        /// </summary>
+        /// <param name="column">The pixel column to render to</param>
+        /// <param name="distance">The distance of the 'wall' from the camera.</param>
+        /// <param name="color">The desired color of the wall.</param>
+        public void DrawWallColumn(int column, float distance, color4i color)
         {
             int colHeight = height;
             if (distance != 0)
@@ -198,7 +295,7 @@ namespace dfe.Client.Engine
                 colHeight = height;
             byte c = (byte)colHeight;
             // Find the top of the column
-            int y = (x * bpp) + (((height - colHeight) >> 1) * stride);
+            int y = (column * bpp) + (((height - colHeight) >> 1) * stride);
             for(int i = 0; i < colHeight; i++)
             {
                 pixels[y] = c;
@@ -208,8 +305,14 @@ namespace dfe.Client.Engine
                 y += stride;
             }
         }
-
-        public void TexturedWall(int x, float distance, float texOfs, PixelBuffer srcImage)
+        /// <summary>
+        /// Draw a wall column using a texture for pixel colors.
+        /// </summary>
+        /// <param name="column">The pixel column to render to</param>
+        /// <param name="distance">The distance of the 'wall' from the camera.</param>
+        /// <param name="texOfs">The source pixel column to draw from, (value from 0..1)</param>
+        /// <param name="srcImage">The source pixel buffer to render pixels from</param>
+        public void TexturedWall(int column, float distance, float texOfs, PixelBuffer srcImage)
         {
             // Calculate initial source texture position.
             int fp_Src = (int)((float)srcImage.height * texOfs);
@@ -232,7 +335,7 @@ namespace dfe.Client.Engine
                 colHeight = height;
             }
             // Calculate the destination data offset for the write.
-            int dst = (x * bpp) + (((height - colHeight) >> 1) * stride);
+            int dst = (column * bpp) + (((height - colHeight) >> 1) * stride);
             int src;
 
             // Draw the column.
@@ -247,8 +350,15 @@ namespace dfe.Client.Engine
                 dst += stride;
             }
         }
-
-        public void ShadeTexturedWall(int x, float distance, float texOfs, PixelBuffer srcImage, Fog4i fogColor)
+        /// <summary>
+        /// Draw a wall column using a texture for pixel colors.
+        /// </summary>
+        /// <param name="column">The pixel column to render to</param>
+        /// <param name="distance">The distance of the 'wall' from the camera.</param>
+        /// <param name="texOfs">The source pixel column to draw from, (value from 0..1)</param>
+        /// <param name="srcImage">The source pixel buffer to render pixels from</param>
+        /// <param name="fogColor">Fog color to blend as distance increases.</param>
+        public void ShadeTexturedWall(int x, float distance, float texOfs, PixelBuffer srcImage, fog4i fogColor)
         {
             // Calculate initial source texture position.
             int fp_Src = (int)((float)srcImage.height * texOfs);
@@ -338,50 +448,17 @@ namespace dfe.Client.Engine
                 }
             }
         }
-
-        // Worker clipping rectangle.
-        private static ClipRect cRect = new ClipRect();
-        private static Color4i red = new Color4i(255, 0, 0);
-        private static Color4i white = new Color4i(255, 255, 255);
-        public void DrawRectPerspective(int x, float distance, int w, int h, ray[] ray_buffer, Color4i c)
-        {
-            w = (int)(w / distance);
-            h = (int)(h / distance);
-            int hw = (int)((w >> 1));
-            int hh = (int)((h >> 1));
-
-            cRect.x = x - hw;
-            cRect.y = (height >> 1) - hh;
-            cRect.w = w;
-            cRect.h = h;
-            DrawRect(cRect.x, cRect.y, cRect.w, cRect.h, red);
-
-            cRect.left = Math.Max(cRect.x, 0);
-            cRect.right = Math.Min(cRect.x + cRect.w, width - 1);
-            cRect.top = cRect.y;
-            cRect.bot = cRect.y + cRect.h;
-            // clip left
-            for (int i = cRect.left; i < cRect.right; i++)
-            {
-                if (ray_buffer[i].dis <= distance)
-                    cRect.left = i;
-                else break;
-            }
-            // clip right
-            for (int i = cRect.left + 1; i < cRect.right; i++)
-            {
-                if (ray_buffer[i].dis <= distance)
-                {
-                    cRect.right = i;
-                    break;
-                }
-            }
-            DrawRect(cRect.left, cRect.top, cRect.right - cRect.left, cRect.bot - cRect.top, c);
-        }
+        /// <summary>
+        /// Render a bilboard sprite at a specific distance with depth clipping.
+        /// </summary>
+        /// <param name="screenX">X Coordinate of the rectangle's center</param>
+        /// <param name="distance">Distance from the camera to render.</param>
+        /// <param name="ray_buffer">A ray buffer to do distance clipping against.</param>
+        /// <param name="sprite">Pixel buffer to use as a source texture.</param>
         public void DrawSpritePerspective(int screenX, float distance, ray[] ray_buffer, PixelBuffer sprite)
         {
-            int w = (int)((sprite.width * 16) / distance);
-            int h = (int)((sprite.height * 16) / distance);
+            int w = (int)((sprite.width << 4) / distance);
+            int h = (int)((sprite.height << 4) / distance);
             int hw = (int)((w >> 1));
             int hh = (int)((h >> 1));
             if (w <= 0 || h <= 0)
@@ -396,8 +473,8 @@ namespace dfe.Client.Engine
             cRect.top = Math.Max(cRect.y, 0);
             cRect.bot = Math.Min(cRect.y + cRect.h, height);
 
-            // TODO : remove me :)
-            DrawRect(cRect.x, cRect.y, cRect.w, cRect.h, red);
+            // TODO : Remove debugging rectangle for clipped sprites
+            DrawRect(cRect.x, cRect.y, cRect.w, cRect.h, clippedColor);
 
             // find the first visible column
             for (; cRect.left < cRect.right; cRect.left++)
@@ -420,6 +497,8 @@ namespace dfe.Client.Engine
             // Destination pixel index.
             int dst_i = (cRect.left << 2) + (cRect.top * stride);
             int dst;
+
+            // OPTI: Implement Nearsided and Farsighted Sprite Renderer
 
             // Step through the rendering columns.
             for (; cRect.left < cRect.right; cRect.left++)
@@ -444,9 +523,8 @@ namespace dfe.Client.Engine
                 fp_src_iy += fp_src_yStep;
                 dst_i += 4;
             }
-            // TODO : remove me :)
-            DrawRect(cRect.left, cRect.top, cRect.right - cRect.left, cRect.bot - cRect.top, white);
-
+            // TODO : Remove debugging rectangle for visible sprites
+            DrawRect(cRect.left, cRect.top, cRect.right - cRect.left, cRect.bot - cRect.top, visibleColor);
         }
     }
 }

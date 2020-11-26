@@ -134,19 +134,19 @@ namespace dfe.Client.Engine
             frameBuffer = new PixelBuffer(view_cols, view_rows);
             tex = new PixelBuffer(16, 16);
             s_tex = new PixelBuffer(16, 16);
-            tex.Clear(new Color4i(0, 64, 128));
-            s_tex.Clear(new Color4i(0, 64, 128));
+            tex.Clear(new color4i(0, 64, 128));
+            s_tex.Clear(new color4i(0, 64, 128));
             for (int y = 0; y < 16; y++)
                 for (int x = 0; x < 16; x++)
                 {
                     byte b = (byte)(x * 16);
                     byte c = (byte)(y * 16);
-                    tex.DrawPoint(x, y, new Color4i(0, b, c));
+                    tex.DrawPoint(x, y, new color4i(0, b, c));
                 }
 
-            tex.DrawPoint(0, 0, new Color4i(255, 0, 0));
-            tex.DrawPoint(2, 0, new Color4i(255, 128, 0));
-            tex.DrawPoint(3, 0, new Color4i(255, 0, 0));
+            tex.DrawPoint(0, 0, new color4i(255, 0, 0));
+            tex.DrawPoint(2, 0, new color4i(255, 128, 0));
+            tex.DrawPoint(3, 0, new color4i(255, 0, 0));
 
             // Ray buffer used for storing ray cast results.
             ray_buffer = new ray[view_cols];
@@ -224,9 +224,10 @@ namespace dfe.Client.Engine
             // Translate the sprites to screen space.
 
 
-
+            //OPTI: This code section could benefit from using some fixed point integers instead of floats.
             float nx = (float)Math.Cos(-self.angle);
             float ny = (float)Math.Sin(-self.angle);
+            
             float tx = (testSprite.position.X - self.position.X) / 16;
             float ty = (testSprite.position.Y - self.position.Y) / 16;
             float sx = ((tx * nx) - (ty * ny));
@@ -236,6 +237,7 @@ namespace dfe.Client.Engine
             frameBuffer.DrawPoint((int)sx + (frameBuffer.width / 2), ((int)-sy + frameBuffer.height / 2), 0, 255, 0);
             frameBuffer.DrawPoint(frameBuffer.width / 2, frameBuffer.height / 2, 255, 255, 255);
 
+            //OPTI: Math.Tan(fov / 2) is a constant that only needs to be calculated once.
             float viewAdjacent = (float)(frameBuffer.width / 2) / (float)Math.Tan(fov / 2);
             int screenX = (int)((sy / sx) * viewAdjacent);
 
@@ -252,9 +254,9 @@ namespace dfe.Client.Engine
         public void renderWalls()
         {
             frameBuffer.Clear();
-            Color4i white = new Color4i(255, 255, 255);
-            Color4i testColor = new Color4i(0, 128, 64);
-            Fog4i fog = new Fog4i(testColor, 0.0f);
+            color4i white = new color4i(255, 255, 255);
+            color4i testColor = new color4i(0, 128, 64);
+            fog4i fog = new fog4i(testColor, 0.0f);
             for (int x = 0; x < frameBuffer.width; x++)
             {
                 frameBuffer.ShadeTexturedWall(x, ray_buffer[x].dis, ray_buffer[x].texOfs, tex, fog);
