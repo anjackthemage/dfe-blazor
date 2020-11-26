@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR.Client;
 using dfe.Shared;
-using System.Drawing;
+using System.Text.Json;
 
 namespace dfe.Client.Engine.Network
 {
@@ -25,6 +25,18 @@ namespace dfe.Client.Engine.Network
             map_hub_conn.On<float[]>("receiveMap", (data) =>
             {
                 level_map.map_contents = data;
+                Console.WriteLine("BEFORE COPY: {0}", ray_tracer.lvl_map.map_contents.Length);
+                //foreach (byte pxl in ray_tracer.lvl_map.map_contents)
+                //{
+                //    Console.WriteLine(pxl);
+                //}
+                
+                ray_tracer.lvl_map = level_map;
+                Console.WriteLine("AFTER COPY: {0}", ray_tracer.lvl_map.map_contents.Length);
+                //foreach (byte pxl in ray_tracer.lvl_map.map_contents)
+                //{
+                //    Console.WriteLine(pxl);
+                //}
             });
 
             map_hub_conn.On<byte[]>("receiveImage", (data) =>
@@ -38,11 +50,14 @@ namespace dfe.Client.Engine.Network
 
             map_hub_conn.StartAsync();
 
+        }
+        
+        public void loadMapFromServer()
+        {
+
             map_hub_conn.SendAsync("getMap");
 
             map_hub_conn.SendAsync("getImage", "Assets/Sprites/Jonesy.data");
         }
-        
-        
     }
 }
