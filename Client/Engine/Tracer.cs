@@ -17,6 +17,7 @@ namespace dfe.Client.Engine
         public bool d;
         public bool l;
         public bool r;
+        public float mouseDelta;
     }
 
     public class Observer
@@ -112,7 +113,7 @@ namespace dfe.Client.Engine
         public const int grid_x = 16;
         public const int grid_y = 16;
         // Controller!
-        public input_ctrl keyb = new input_ctrl();
+        public input_ctrl input = new input_ctrl();
         // Observer Mob - This should be the player.
         public Mob self = new Mob(128, 128, 0);
         // Map Object
@@ -121,6 +122,8 @@ namespace dfe.Client.Engine
         public ray[] ray_buffer;
         // Field of View
         public float fov;
+        // Last mouse position : TODO: Deprecate me
+        public float lastMouseX;
 
         public Mob testSprite = new Mob(new Vector2(136, 128), 0);
 
@@ -377,26 +380,28 @@ namespace dfe.Client.Engine
         public void updateObserver()
         {
 
-            if (keyb.u == true)
+            if (input.u == true)
             {
-                //Console.WriteLine("MOVE FORWARD");
                 self.walk(1);
             }
-            else if (keyb.d == true)
+            else if (input.d == true)
             {
-                //Console.WriteLine("MOVE BACKWARD");
                 self.walk(-1);
             }
 
-            if (keyb.l == true)
+            if (input.l == true)
             {
-                //Console.WriteLine("TURN LEFT");
-                self.rotate(-turnRate);
+                self.strafe(-1);
             }
-            else if (keyb.r == true)
+            else if (input.r == true)
             {
-                //Console.WriteLine("TURN RIGHT");
-                self.rotate(turnRate);
+                self.strafe(1);
+            }
+
+            if (input.mouseDelta != 0)
+            {
+                self.rotate(input.mouseDelta / 64);
+                input.mouseDelta = 0;
             }
         }
     }

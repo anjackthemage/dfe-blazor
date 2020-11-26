@@ -9,7 +9,13 @@
 
 <div id="game_view_container">
     <div>
-        <canvas tabindex="0" id="game_canvas" width="320" height="240" @ref="render_canvas" @onkeydown="handleKeyDown" @onkeyup="handleKeyUp"></canvas>
+        <canvas tabindex="0" id="game_canvas" width="320" height="240" 
+                @ref="render_canvas" 
+                @onkeydown="handleKeyDown" 
+                @onkeyup="handleKeyUp"
+                @onpointerdown="handlePointerDown"
+                @onmousemove="handleMouse">
+        </canvas>
     </div>
     <div hidden="@game_started">
         <div class="centered" style="width: 100%; height: 100%; background-color: gray; opacity: 0.5;">
@@ -131,22 +137,22 @@
     }
 
     [JSInvokable]
-    public void handleKeyUp(KeyboardEventArgs kbe_args)
+    public void handleKeyUp(KeyboardEventArgs ke_args)
     {
-        string key = kbe_args.Key;
+        string key = ke_args.Key;
         switch (key)
         {
-            case "ArrowUp":
-                ray_tracer.keyb.u = false;
+            case "w":
+                ray_tracer.input.u = false;
                 break;
-            case "ArrowDown":
-                ray_tracer.keyb.d = false;
+            case "s":
+                ray_tracer.input.d = false;
                 break;
-            case "ArrowLeft":
-                ray_tracer.keyb.l = false;
+            case "a":
+                ray_tracer.input.l = false;
                 break;
-            case "ArrowRight":
-                ray_tracer.keyb.r = false;
+            case "d":
+                ray_tracer.input.r = false;
                 break;
             default:
                 break;
@@ -154,29 +160,40 @@
     }
 
     [JSInvokable]
-    public void handleKeyDown(KeyboardEventArgs kbe_args)
+    public void handleKeyDown(KeyboardEventArgs ke_args)
     {
-        string key = kbe_args.Key;
+        string key = ke_args.Key;
         switch (key)
         {
-            case "ArrowUp":
-                ray_tracer.keyb.u = true;
+            case "w":
+                ray_tracer.input.u = true;
                 break;
-            case "ArrowDown":
-                ray_tracer.keyb.d = true;
+            case "s":
+                ray_tracer.input.d = true;
                 break;
-            case "ArrowLeft":
-                ray_tracer.keyb.l = true;
+            case "a":
+                ray_tracer.input.l = true;
                 break;
-            case "ArrowRight":
-                ray_tracer.keyb.r = true;
+            case "d":
+                ray_tracer.input.r = true;
                 break;
             default:
                 break;
         }
     }
 
+    [JSInvokable]
+    public async void handleMouse()
+    {
+        float x = await JsRuntime.InvokeAsync<float>("pollMouse");
+        ray_tracer.input.mouseDelta = x;
+    }
 
+    [JSInvokable]
+    public async void handlePointerDown(PointerEventArgs pe_args)
+    {
+        await JsRuntime.InvokeVoidAsync("captureMouse", render_canvas, pe_args.PointerId);
+    }
     // Chat Begin
 
     public async Task sendMsg()

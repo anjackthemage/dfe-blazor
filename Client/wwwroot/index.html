@@ -23,7 +23,6 @@
         window.initGame = (instance) => {
             window.game = instance;
             let canvas_ref = document.getElementById("game_canvas");
-            console.log(canvas_ref);
             initCanvas(canvas_ref);
             window.requestAnimationFrame(doGameLoop);
         };

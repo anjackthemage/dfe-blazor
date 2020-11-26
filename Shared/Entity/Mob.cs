@@ -115,6 +115,12 @@ namespace dfe.Shared.Entity
             position.X += (heading.X * distance);
             position.Y += (heading.Y * distance);
         }
+
+        public void strafe(float distance)
+        {
+            position.X += (-heading.Y * distance);
+            position.Y += (heading.X * distance);
+        }
         public void updatePosition()
         {
             // Assuming this is for velocity in the future? :3
