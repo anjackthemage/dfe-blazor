@@ -98,6 +98,9 @@ namespace dfe.Client.Engine
 
         public void DrawPoint(int x, int y, byte r, byte g, byte b)
         {
+            if (x < 0 || x >= width || y < 0 || y >= height)
+                return;
+
             int i = (x << 2) + (y * stride) % pixels.Length;
             pixels[i] = r;
             pixels[i + 1] = g;
@@ -377,8 +380,8 @@ namespace dfe.Client.Engine
         }
         public void DrawSpritePerspective(int screenX, float distance, ray[] ray_buffer, PixelBuffer sprite)
         {
-            int w = (int)(sprite.width / distance);
-            int h = (int)(sprite.height / distance);
+            int w = (int)((sprite.width * 16) / distance);
+            int h = (int)((sprite.height * 16) / distance);
             int hw = (int)((w >> 1));
             int hh = (int)((h >> 1));
             if (w <= 0 || h <= 0)

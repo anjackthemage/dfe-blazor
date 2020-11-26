@@ -122,6 +122,8 @@ namespace dfe.Client.Engine
         // Field of View
         public float fov;
 
+        public Mob testSprite = new Mob(new Vector2(136, 128), 0);
+
         // Color gradient for fun :)
         public string[] colors;
         public Tracer()
@@ -166,7 +168,8 @@ namespace dfe.Client.Engine
         public void render()
         {
             ray_buffer = buildRayBuffer();
-            renderCols();
+            renderWalls();
+            renderSprites();
         }
 
         public void rotObserver(Observer o, float a)
@@ -203,12 +206,39 @@ namespace dfe.Client.Engine
             return ray_buffer;
         }
 
+        public void renderSprites()
+        {
+            // Sort sprites from furthest to closest.
+
+            // Translate the sprites to screen space.
+
+
+
+            float nx = (float)Math.Cos(-self.angle);
+            float ny = (float)Math.Sin(-self.angle);
+            float tx = (testSprite.position.X - self.position.X) / 16;
+            float ty = (testSprite.position.Y - self.position.Y) / 16;
+            float sx = ((tx * nx) - (ty * ny));
+            float sy = ((tx * ny) + (ty * nx));
+
+            frameBuffer.DrawPoint((int)tx + (frameBuffer.width / 2), ((int)-ty + frameBuffer.height / 2), 255, 0, 255);
+            frameBuffer.DrawPoint((int)sx + (frameBuffer.width / 2), ((int)-sy + frameBuffer.height / 2), 0, 255, 0);
+            frameBuffer.DrawPoint(frameBuffer.width / 2, frameBuffer.height / 2, 255, 255, 255);
+
+            float viewAdjacent = (float)(frameBuffer.width / 2) / (float)Math.Tan(fov / 2);
+            int screenX = (int)((sy / sx) * viewAdjacent);
+
+            //float screenX = (float)((sy * (frameBuffer.width >> 1)) / (Math.Tan(fov / 2)));
+            //int screenX = (int)((Math.Tan(fov / 2) * sy) * (frameBuffer.width / 2));
+            frameBuffer.DrawPoint(screenX + 160, 16, 0, 255, 255);
+            frameBuffer.DrawSpritePerspective((int)screenX + (frameBuffer.width / 2), sx, ray_buffer, tex);
+        }
         /// <summary>
         /// renderCols()
         /// 
         /// Renders the ray_buffer to the screen buffer. 
         /// </summary>
-        public void renderCols()
+        public void renderWalls()
         {
             frameBuffer.Clear();
             Color4i white = new Color4i(255, 255, 255);
@@ -216,15 +246,9 @@ namespace dfe.Client.Engine
             Fog4i fog = new Fog4i(testColor, 0.0f);
             for (int x = 0; x < frameBuffer.width; x++)
             {
-                //frameBuffer.ShadeWall(x, ray_buffer[x].dis, cyan);
-                //frameBuffer.TexturedWall(x, ray_buffer[x].dis, ray_buffer[x].texOfs, tex);
                 frameBuffer.ShadeTexturedWall(x, ray_buffer[x].dis, ray_buffer[x].texOfs, tex, fog);
             }
-            //frameBuffer.DrawRectPerspective(160, testd, 256, 256, ray_buffer, white);
-            frameBuffer.DrawSpritePerspective(160, (float)Math.Sin(testd), ray_buffer, tex);
-            testd += 0.01f;
         }
-        float testd = 1;
         public ray rayCast(Mob obs, float ang)
         {
             Vector2 pos = obs.position;
