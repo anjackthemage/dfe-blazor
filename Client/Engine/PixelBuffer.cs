@@ -11,12 +11,57 @@ namespace dfe.Client.Engine
     public struct color4i
     {
         public byte r, g, b, a;
+        public color4i(uint color)
+        {
+            r = (byte)(color & 0xFF); // red
+            g = (byte)((color >> 8) & 0xFF);   // green
+            b = (byte)((color >> 16) & 0xFF);  // blue
+            a = (byte)((color >> 24) & 0xFF); // alpha  
+        }
+
         public color4i(byte red, byte green, byte blue)
         {
             r = red;
             g = green;
             b = blue;
             a = 255;
+        }
+        public void set(byte red, byte green, byte blue)
+        {
+            r = red;
+            g = green;
+            b = blue;
+            a = 255;
+        }
+
+        public void set(byte red, byte green, byte blue, byte alpha)
+        {
+            r = red;
+            g = green;
+            b = blue;
+            a = alpha;
+        }
+        public void set(float red, float green, float blue)
+        {
+            red = Math.Min(1, Math.Max(0, red));
+            green = Math.Min(1, Math.Max(0, green));
+            blue = Math.Min(1, Math.Max(0, blue));
+            set((byte)red * 255, (byte)blue * 255, (byte)green * 255, 255);
+        }
+        public void set(float red, float green, float blue, float alpha)
+        {
+            red = Math.Min(1, Math.Max(0, red));
+            green = Math.Min(1, Math.Max(0, green));
+            blue = Math.Min(1, Math.Max(0, blue));
+            alpha = Math.Min(1, Math.Max(0, alpha));
+            set((byte)red * 255, (byte)blue * 255, (byte)green * 255, (byte)alpha * 255);
+        }
+        public void set(uint color)
+        {
+            set((byte)color & 0xFF, // red
+                (byte)(color >> 8) & 0xFF,   // green
+                (byte)(color >> 16) & 0xFF,  // blue
+                (byte)(color >> 24) & 0xFF); // alpha
         }
     }
     /// <summary>
@@ -525,6 +570,50 @@ namespace dfe.Client.Engine
             }
             // TODO : Remove debugging rectangle for visible sprites
             DrawRect(cRect.left, cRect.top, cRect.right - cRect.left, cRect.bot - cRect.top, visibleColor);
+        }
+
+        public void DrawRow(int screenY, color4i color)
+        {
+            int dst = screenY * stride;
+            for(int i = 0; i < width; i++)
+            {
+                pixels[dst] = color.r;
+                pixels[dst + 1] = color.g;
+                pixels[dst + 2] = color.b;
+                pixels[dst + 3] = color.a;
+                dst += bpp;
+            }
+        }
+
+        public void ShadeRow(int screenY, float distance, color4i color, fog4i fogColor)
+        {
+            int dst = screenY * stride;
+
+            // Calcualte shading values
+            // Fixed point rgba maths
+            int fp_fogCol = (int)(distance * 16f);
+            fp_fogCol += fogColor.i;
+            if (fp_fogCol > 0x0100) fp_fogCol = 0x0100;
+
+            //Console.WriteLine(fp_fogCol.ToString("X8"));
+            int fog_r = fp_fogCol * (fogColor.r);
+            int fog_g = fp_fogCol * (fogColor.g);
+            int fog_b = fp_fogCol * (fogColor.b);
+
+            int fp_srcCol = 0x0100 - fp_fogCol;
+
+            byte r = (byte)(((color.r * fp_srcCol) + fog_r) >> 8);
+            byte g = (byte)(((color.g * fp_srcCol) + fog_g) >> 8);
+            byte b = (byte)(((color.b * fp_srcCol) + fog_b) >> 8);
+
+            for (int i = 0; i < width; i++)
+            {
+                pixels[dst] = r;
+                pixels[dst + 1] = g;
+                pixels[dst + 2] = b;
+                pixels[dst + 3] = color.a;
+                dst += bpp;
+            }
         }
     }
 }

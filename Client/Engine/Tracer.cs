@@ -106,7 +106,8 @@ namespace dfe.Client.Engine
         public int view_cols = 320;
         // Number of Viewport rows
         public int view_rows = 240;
-
+        // Fog color of the current render
+        public fog4i fogColor = new fog4i(new color4i(0xFFFFFFFF), 0.2f);
         // Rate of heading change during turns.
         public const float turnRate = 0.05f;
         // Grid size in units.
@@ -179,6 +180,8 @@ namespace dfe.Client.Engine
             if (testSprite.position.X >= 256)
                 testSprite.position.X = 0;
             ray_buffer = buildRayBuffer();
+            renderFloor();
+            renderCeiling();
             renderWalls();
             renderSprites();
         }
@@ -216,6 +219,28 @@ namespace dfe.Client.Engine
             }
             return ray_buffer;
         }
+        public void renderFloor()
+        {
+            color4i floorColor = new color4i(0xFF808080);
+            float dchange = 1 / 15f;
+            float distance = (frameBuffer.height / 2) * dchange;
+            for (int y = frameBuffer.height / 2; y < frameBuffer.height; y++)
+            {
+                frameBuffer.ShadeRow(y, distance, floorColor, fogColor);
+                distance -= dchange;
+            }
+        }
+        public void renderCeiling()
+        {
+            color4i ceilColor = new color4i(0xFF602000);
+            float dchange = 1 / 15f;
+            float distance = (frameBuffer.height / 2) * dchange;
+            for (int y = frameBuffer.height / 2; y >= 0; y--)
+            {
+                frameBuffer.ShadeRow(y, distance, ceilColor, fogColor);
+                distance -= dchange;
+            }
+        }
 
         public void renderSprites()
         {
@@ -233,9 +258,12 @@ namespace dfe.Client.Engine
             float sx = ((tx * nx) - (ty * ny));
             float sy = ((tx * ny) + (ty * nx));
 
-            frameBuffer.DrawPoint((int)tx + (frameBuffer.width / 2), ((int)-ty + frameBuffer.height / 2), 255, 0, 255);
-            frameBuffer.DrawPoint((int)sx + (frameBuffer.width / 2), ((int)-sy + frameBuffer.height / 2), 0, 255, 0);
-            frameBuffer.DrawPoint(frameBuffer.width / 2, frameBuffer.height / 2, 255, 255, 255);
+            // Debug Drawing 
+            // ---
+            // frameBuffer.DrawPoint((int)tx + (frameBuffer.width / 2), ((int)-ty + frameBuffer.height / 2), 255, 0, 255);
+            // frameBuffer.DrawPoint((int)sx + (frameBuffer.width / 2), ((int)-sy + frameBuffer.height / 2), 0, 255, 0);
+            // frameBuffer.DrawPoint(frameBuffer.width / 2, frameBuffer.height / 2, 255, 255, 255);
+            // ---
 
             //OPTI: Math.Tan(fov / 2) is a constant that only needs to be calculated once.
             float viewAdjacent = (float)(frameBuffer.width / 2) / (float)Math.Tan(fov / 2);
@@ -253,13 +281,9 @@ namespace dfe.Client.Engine
         /// </summary>
         public void renderWalls()
         {
-            frameBuffer.Clear();
-            color4i white = new color4i(255, 255, 255);
-            color4i testColor = new color4i(0, 128, 64);
-            fog4i fog = new fog4i(testColor, 0.0f);
             for (int x = 0; x < frameBuffer.width; x++)
             {
-                frameBuffer.ShadeTexturedWall(x, ray_buffer[x].dis, ray_buffer[x].texOfs, tex, fog);
+                frameBuffer.ShadeTexturedWall(x, ray_buffer[x].dis, ray_buffer[x].texOfs, tex, fogColor);
             }
         }
         public ray rayCast(Mob obs, float ang)
