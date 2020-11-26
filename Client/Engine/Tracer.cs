@@ -116,7 +116,7 @@ namespace dfe.Client.Engine
         // Observer Mob - This should be the player.
         public Mob self = new Mob(128, 128, 0);
         // Map Object
-        public Map lvl_test = new Map(16, 16);
+        public Map lvl_map = new Map(16, 16);
         // Ray Data Array
         public ray[] ray_buffer;
         // Field of View
@@ -155,10 +155,10 @@ namespace dfe.Client.Engine
 
             //for (int index = 0; index < 16; index++)
             //{
-            //    lvl_test.d[index] = 1;
-            //    lvl_test.d[index + 240] = 1;
-            //    lvl_test.d[index * 16] = 1;
-            //    lvl_test.d[15 + (index * 16)] = 1;
+            //    lvl_map.d[index] = 1;
+            //    lvl_map.d[index + 240] = 1;
+            //    lvl_map.d[index * 16] = 1;
+            //    lvl_map.d[15 + (index * 16)] = 1;
             //}
         }
 
@@ -308,7 +308,7 @@ namespace dfe.Client.Engine
             var hit = new ray(0, 0, 0, 0, false, 0);
 
             var side = 0;
-            while (mx >= 0 && mx < lvl_test.width && my >= 0 && my < lvl_test.height)
+            while (mx >= 0 && mx < lvl_map.width && my >= 0 && my < lvl_map.height)
             {
                 if (iDeltaX < iDeltaY)
                 {
@@ -322,7 +322,7 @@ namespace dfe.Client.Engine
                     my += stepY;
                     side = 1;
                 }
-                if (lvl_test.map_contents[mx + (my * lvl_test.width)] == 1)
+                if (lvl_map.map_contents[mx + (my * lvl_map.width)] == 1)
                 {
                     hit.map_x = mx;
                     hit.map_y = my;

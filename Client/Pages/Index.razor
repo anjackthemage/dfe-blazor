@@ -2,6 +2,7 @@
 
 @using Engine;
 @using Microsoft.AspNetCore.SignalR.Client;
+@using dfe.Client.Engine.Network;
 
 @inject IJSRuntime JsRuntime;
 @inject NavigationManager NavigationManager
@@ -20,6 +21,10 @@
     </div>
 </div>
 
+@if (img_test != null)
+{
+    <img id="img_test" src="@img_test" />
+}
 
 <div id="chat_container">
 
@@ -57,9 +62,14 @@
 @code {
     protected ElementReference render_canvas;
 
+    private string img_test;
+
     private bool b_is_audio_muted = true;
 
     private Tracer ray_tracer;
+    private ChatClient chat_client;
+    private MapClient map_client;
+
     // network
     private HubConnection chat_hub_conn;
     private HubConnection map_hub_conn;
@@ -73,28 +83,13 @@
     {
         ray_tracer = new Tracer();
 
-        chat_hub_conn = new HubConnectionBuilder().WithUrl(NavigationManager.ToAbsoluteUri("/chathub")).Build();
-
-        chat_hub_conn.On<string, string>("receiveMessage", (user, message) =>
-        {
-            var encoded_msg = $"{user}: {message}";
-            messages.Add(encoded_msg);
-            StateHasChanged();
-        });
-
-        await chat_hub_conn.StartAsync();
-
         map_hub_conn = new HubConnectionBuilder().WithUrl(NavigationManager.ToAbsoluteUri("/maphub")).Build();
+        map_client = new MapClient(map_hub_conn);
+        ray_tracer.lvl_map = map_client.level_map;
 
-        map_hub_conn.On<float[]>("receiveMap", (data) =>
-        {
-            ray_tracer.lvl_test.map_contents = data;
-        });
-
-
-        await map_hub_conn.StartAsync();
-
-        await map_hub_conn.SendAsync("getMap");
+        chat_hub_conn = new HubConnectionBuilder().WithUrl(NavigationManager.ToAbsoluteUri("/chathub")).Build();
+        chat_client = new ChatClient(chat_hub_conn);
+        chat_client.onChatUpdated += refreshMessages;
 
         await base.OnInitializedAsync();
     }
@@ -181,15 +176,17 @@
 
     public async Task sendMsg()
     {
-        await chat_hub_conn.SendAsync("sendMessage", user_input, msg_input);
+        //await chat_hub_conn.SendAsync("sendMessage", user_input, msg_input);
+        await chat_client.sendMsg(msg_input, user_input);
     }
 
-    public bool isConnected => chat_hub_conn.State == HubConnectionState.Connected;
-
-    public async ValueTask DisposeAsync()
+    public void refreshMessages(object sender, ChatMessageEventArgs che_args)
     {
-        await chat_hub_conn.DisposeAsync();
+        messages = che_args.Messages;
+        StateHasChanged();
     }
+
+    public bool isConnected => chat_client.chat_hub_conn.State == HubConnectionState.Connected;
 
     // Chat End
 }
