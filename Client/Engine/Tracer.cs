@@ -101,7 +101,7 @@ namespace dfe.Client.Engine
         public PixelBuffer frameBuffer;
         // Test texture
         public PixelBuffer tex;
-
+        public PixelBuffer s_tex;
         // Number of Viewport columns
         public int view_cols = 320;
         // Number of Viewport rows
@@ -117,7 +117,7 @@ namespace dfe.Client.Engine
         // Observer Mob - This should be the player.
         public Mob self = new Mob(128, 128, 0);
         // Map Object
-        public Map lvl_test = new Map(16, 16);
+        public Map lvl_map = new Map(16, 16);
         // Ray Data Array
         public ray[] ray_buffer;
         // Field of View
@@ -133,7 +133,9 @@ namespace dfe.Client.Engine
         {
             frameBuffer = new PixelBuffer(view_cols, view_rows);
             tex = new PixelBuffer(16, 16);
+            s_tex = new PixelBuffer(16, 16);
             tex.Clear(new Color4i(0, 64, 128));
+            s_tex.Clear(new Color4i(0, 64, 128));
             for (int y = 0; y < 16; y++)
                 for (int x = 0; x < 16; x++)
                 {
@@ -158,10 +160,10 @@ namespace dfe.Client.Engine
 
             //for (int index = 0; index < 16; index++)
             //{
-            //    lvl_test.d[index] = 1;
-            //    lvl_test.d[index + 240] = 1;
-            //    lvl_test.d[index * 16] = 1;
-            //    lvl_test.d[15 + (index * 16)] = 1;
+            //    lvl_map.d[index] = 1;
+            //    lvl_map.d[index + 240] = 1;
+            //    lvl_map.d[index * 16] = 1;
+            //    lvl_map.d[15 + (index * 16)] = 1;
             //}
         }
 
@@ -234,7 +236,7 @@ namespace dfe.Client.Engine
             //float screenX = (float)((sy * (frameBuffer.width >> 1)) / (Math.Tan(fov / 2)));
             //int screenX = (int)((Math.Tan(fov / 2) * sy) * (frameBuffer.width / 2));
             frameBuffer.DrawPoint(screenX + 160, 16, 0, 255, 255);
-            frameBuffer.DrawSpritePerspective((int)screenX + (frameBuffer.width / 2), sx, ray_buffer, tex);
+            frameBuffer.DrawSpritePerspective((int)screenX + (frameBuffer.width / 2), sx, ray_buffer, s_tex);
         }
         /// <summary>
         /// renderCols()
@@ -311,7 +313,7 @@ namespace dfe.Client.Engine
             var hit = new ray(0, 0, 0, 0, false, 0);
 
             var side = 0;
-            while (mx >= 0 && mx < lvl_test.width && my >= 0 && my < lvl_test.height)
+            while (mx >= 0 && mx < lvl_map.width && my >= 0 && my < lvl_map.height)
             {
                 if (iDeltaX < iDeltaY)
                 {
@@ -325,7 +327,7 @@ namespace dfe.Client.Engine
                     my += stepY;
                     side = 1;
                 }
-                if (lvl_test.map_contents[mx + (my * lvl_test.width)] == 1)
+                if (lvl_map.map_contents[mx + (my * lvl_map.width)] == 1)
                 {
                     hit.map_x = mx;
                     hit.map_y = my;
