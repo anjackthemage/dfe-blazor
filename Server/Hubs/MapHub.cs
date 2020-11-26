@@ -21,7 +21,7 @@ namespace dfe.Server.Hubs
             byte[] image_bytes = new byte[image_fs.Length];
             image_fs.Read(image_bytes);
             //string image_str = System.Text.Encoding.UTF8.GetString(image_bytes);
-
+            //Console.WriteLine("Image: {0}", image_str);
             await Clients.Caller.SendAsync("receiveImage", image_bytes);
             
         }

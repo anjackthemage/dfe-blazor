@@ -85,6 +85,7 @@
 
         map_hub_conn = new HubConnectionBuilder().WithUrl(NavigationManager.ToAbsoluteUri("/maphub")).Build();
         map_client = new MapClient(map_hub_conn);
+        map_client.ray_tracer = ray_tracer;
         ray_tracer.lvl_map = map_client.level_map;
 
         chat_hub_conn = new HubConnectionBuilder().WithUrl(NavigationManager.ToAbsoluteUri("/chathub")).Build();

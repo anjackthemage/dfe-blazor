@@ -100,7 +100,7 @@ namespace dfe.Client.Engine
         public PixelBuffer frameBuffer;
         // Test texture
         public PixelBuffer tex;
-
+        public PixelBuffer s_tex;
         // Number of Viewport columns
         public int view_cols = 320;
         // Number of Viewport rows
@@ -130,7 +130,9 @@ namespace dfe.Client.Engine
         {
             frameBuffer = new PixelBuffer(view_cols, view_rows);
             tex = new PixelBuffer(16, 16);
+            s_tex = new PixelBuffer(16, 16);
             tex.Clear(new Color4i(0, 64, 128));
+            s_tex.Clear(new Color4i(0, 64, 128));
             for (int y = 0; y < 16; y++)
                 for (int x = 0; x < 16; x++)
                 {
@@ -231,7 +233,7 @@ namespace dfe.Client.Engine
             //float screenX = (float)((sy * (frameBuffer.width >> 1)) / (Math.Tan(fov / 2)));
             //int screenX = (int)((Math.Tan(fov / 2) * sy) * (frameBuffer.width / 2));
             frameBuffer.DrawPoint(screenX + 160, 16, 0, 255, 255);
-            frameBuffer.DrawSpritePerspective((int)screenX + (frameBuffer.width / 2), sx, ray_buffer, tex);
+            frameBuffer.DrawSpritePerspective((int)screenX + (frameBuffer.width / 2), sx, ray_buffer, s_tex);
         }
         /// <summary>
         /// renderCols()
