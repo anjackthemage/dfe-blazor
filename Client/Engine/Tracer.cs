@@ -170,8 +170,14 @@ namespace dfe.Client.Engine
         /// <summary>
         /// Render a single frame.
         /// </summary>
+        float tFloat = 0;
         public void render()
         {
+            tFloat += 0.1f;
+            testSprite.position.X += 1;
+            testSprite.position.Y = 128 + (int)(Math.Sin(tFloat) * 16);
+            if (testSprite.position.X >= 256)
+                testSprite.position.X = 0;
             ray_buffer = buildRayBuffer();
             renderWalls();
             renderSprites();
