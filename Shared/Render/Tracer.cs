@@ -257,7 +257,7 @@ namespace dfe.Shared.Render
             //float screenX = (float)((sy * (frameBuffer.width >> 1)) / (Math.Tan(fov / 2)));
             //int screenX = (int)((Math.Tan(fov / 2) * sy) * (frameBuffer.width / 2));
             frameBuffer.DrawPoint(screenX + 160, 16, 0, 255, 255);
-            frameBuffer.DrawSpritePerspective((int)screenX + (frameBuffer.width / 2), sx, ray_buffer, s_tex);
+            frameBuffer.DrawSpritePerspective((int)screenX + (frameBuffer.width / 2), sx, ray_buffer, ent_to_render.sprite);
         }
 
         public void renderSprites()

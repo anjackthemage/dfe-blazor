@@ -83,7 +83,7 @@
     private ChatClient chat_client;
     private MapClient map_client;
 
-    private Mob test_sprite;
+    private Mob test_mob;
 
     // network
     private HubConnection chat_hub_conn;
@@ -108,7 +108,8 @@
         chat_client = new ChatClient(chat_hub_conn);
         chat_client.onChatUpdated += refreshMessages;
 
-        test_sprite = new Mob(new Vector2(136, 128), 0);
+        test_mob = new Mob(new Vector2(200, 128), 0);
+        test_mob.sprite = ray_tracer.s_tex;
 
         await base.OnInitializedAsync();
     }
@@ -153,6 +154,7 @@
         ray_tracer.updateObserver();
         map_client.level_map.render();
         ray_tracer.render();
+        test_mob.render();
         //ray_tracer.presentScreen(JsRuntime);
         presentScreen(JsRuntime, ray_tracer.frameBuffer);
     }

@@ -14,11 +14,11 @@ namespace dfe.Client.Engine.Network
         public Tracer ray_tracer;
         public HubConnection map_hub_conn;
 
-        public MapRender level_map;
+        public Map level_map;
 
         public MapClient(HubConnection new_hub_conn)
         {
-            level_map = new MapRender(16, 16);
+            level_map = new Map(16, 16);
             map_hub_conn = new_hub_conn;
 
             map_hub_conn.On<float[]>("receiveMap", (data) =>

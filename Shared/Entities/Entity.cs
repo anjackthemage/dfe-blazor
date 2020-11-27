@@ -13,18 +13,17 @@ namespace dfe.Shared.Entities
     {
         public Vector2 position;
 
-        public byte[] sprite;
+        public PixelBuffer sprite { get; set; }
 
         public Entity()
         {
-
+            //sprite = IRender.ray_tracer.s_tex;
         }
 
         public void render()
         {
-            renderSprite(this);
+            IRender render = this;
+            render.renderSprite(this);
         }
-
-        public void renderSprite(Entity ent_to_render) { }
     }
 }

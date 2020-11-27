@@ -4,6 +4,7 @@ using System.IO;
 //using System.Linq;
 //using System.Threading.Tasks;
 using System.Text.Json;
+using dfe.Shared.Render;
 
 namespace dfe.Shared
 {
@@ -21,7 +22,7 @@ namespace dfe.Shared
         public sprite[] sprites { get; set; }
     }
 
-    public class Map
+    public class Map : IRender
     {
         private string level_path = "Maps/level_test.json";
 
@@ -37,6 +38,13 @@ namespace dfe.Shared
         public Map(int width, int height)
         {
             generateMap(width, height);
+        }
+
+
+        public void render()
+        {
+            IRender render = this;
+            render.renderMap(this);
         }
 
         public void generateMap(int width, int height)
