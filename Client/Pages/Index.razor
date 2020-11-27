@@ -3,7 +3,8 @@
 @using Engine;
 @using Microsoft.AspNetCore.SignalR.Client;
 @using dfe.Client.Engine.Network;
-@using dfe.Client.Engine.Render;
+@using dfe.Shared.Render
+
 
 @inject IJSRuntime JsRuntime;
 @inject NavigationManager NavigationManager
@@ -11,9 +12,9 @@
 
 <div id="game_view_container">
     <div>
-        <canvas tabindex="0" id="game_canvas" width="640" height="480" 
-                @ref="render_canvas" 
-                @onkeydown="handleKeyDown" 
+        <canvas tabindex="0" id="game_canvas" width="640" height="480"
+                @ref="render_canvas"
+                @onkeydown="handleKeyDown"
                 @onkeyup="handleKeyUp"
                 @onpointerdown="handlePointerDown"
                 @onmousemove="handleMouse">
@@ -62,7 +63,7 @@
 </div>
 
 <div id="audio-elements">
-    <input type="checkbox" @onchange="muteClicked" checked/> <label>Mute</label>
+    <input type="checkbox" @onchange="muteClicked" checked /> <label>Mute</label>
     @* For organization purposes, this will contain the audio elements until we have a better audio system in place. *@
 </div>
 
@@ -129,13 +130,25 @@
         await JsRuntime.InvokeVoidAsync("setAllAudioMute", b_is_audio_muted);
     }
 
+    /// <summary>
+    /// Presents the screen to the user by calling the blitScreen javascript function.
+    /// </summary>
+    /// <param name="js"></param>
+    ///
+    public void presentScreen(IJSRuntime js, PixelBuffer frameBuffer)
+    {
+        IJSUnmarshalledRuntime umjs = (IJSUnmarshalledRuntime)js;
+        object result = umjs.InvokeUnmarshalled<byte[], int, int, object>("blitScreen", frameBuffer.pixels, frameBuffer.width, frameBuffer.height);
+    }
+
     [JSInvokable]
     public async ValueTask update(double time_stamp)
     {
         ray_tracer.updateObserver();
         map_client.level_map.render();
         //ray_tracer.render();
-        ray_tracer.presentScreen(JsRuntime);
+        //ray_tracer.presentScreen(JsRuntime);
+        presentScreen(JsRuntime, ray_tracer.frameBuffer);
     }
 
     [JSInvokable]

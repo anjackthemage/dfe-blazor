@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR.Client;
 using dfe.Shared;
 using System.Text.Json;
-using dfe.Client.Engine.Render;
+using dfe.Shared.Render;
 
 namespace dfe.Client.Engine.Network
 {

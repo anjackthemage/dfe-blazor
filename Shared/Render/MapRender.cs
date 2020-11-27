@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using dfe.Shared;
 
-namespace dfe.Client.Engine.Render
+namespace dfe.Shared.Render
 {
     public class MapRender : Map, IRender
     {

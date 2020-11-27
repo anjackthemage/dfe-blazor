@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace dfe.Shared.Entity
+namespace dfe.Shared.Entities
 {
-    interface IInteract
+    interface ICollilde
     {
     }
 }

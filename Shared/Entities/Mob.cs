@@ -6,50 +6,13 @@
 using System.Numerics;
 using dfe.Shared.Utils.ExtensionMethods;
 
-namespace dfe.Shared.Entity
+namespace dfe.Shared.Entities
 {
-    [ObsoleteAttribute("dfe.Shared.Entity.vector is deprecated. Use Vector2 instead.")]
-    public struct vector
-    {
-        public float x;
-        public float y;
-        public vector(float x_new, float y_new)
-        {
-            x = x_new;
-            y = y_new;
-        }
-        /// <summary>
-        /// Normalizes this vector.
-        /// </summary>
-        public void normalize()
-        {
-            if(x != 0 || y != 0)
-            {
-                float d = (float)Math.Sqrt(x + y);
-                x = x / d;
-                y = y / d;
-            }
-        }
-
-        /// <summary>
-        /// Rotate this vector by the given number of radians.
-        /// </summary>
-        /// <param name="angle">An angle, in radians.</param>
-        public void rotate(float angle)
-        {
-            float cos = (float)Math.Cos(angle);
-            float sin = (float)Math.Sin(angle);
-            float nx = (x * cos) - (y * sin);
-            float ny = (x * sin) + (y * cos);
-            x = nx;
-            y = ny;
-        }
-    }
 
     public class Mob : Entity
     {
         public static readonly Vector2 RIGHT = new Vector2(1.0f, 0.0f); // new vector(1, 0);
-        public Vector2 position;
+        
         // Heading of this mob - Should always be normalized.
         public Vector2 heading;
         public float angle;

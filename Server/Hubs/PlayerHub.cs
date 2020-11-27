@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR;
-using dfe.Shared.Entity;
+using dfe.Shared.Entities;
 
 namespace dfe.Server.Hubs
 {
