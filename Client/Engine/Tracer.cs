@@ -102,12 +102,14 @@ namespace dfe.Client.Engine
         // Test texture
         public PixelBuffer tex;
         public PixelBuffer s_tex;
+        public PixelBuffer f_tex;
+
         // Number of Viewport columns
         public int view_cols = 320;
         // Number of Viewport rows
         public int view_rows = 240;
         // Fog color of the current render
-        public fog4i fogColor = new fog4i(new color4i(0xFFFFFFFF), 0.2f);
+        public fog4i fogColor = new fog4i(new color4i(0xFFFFFFFF), 0.0f);
         // Rate of heading change during turns.
         public const float turnRate = 0.05f;
         // Grid size in units.
@@ -149,6 +151,15 @@ namespace dfe.Client.Engine
             tex.DrawPoint(2, 0, new color4i(255, 128, 0));
             tex.DrawPoint(3, 0, new color4i(255, 0, 0));
 
+            // Floor test texture
+            f_tex = new PixelBuffer(64, 64);
+            for(int y = 0; y < 64; y++)
+            {
+                for(int x =0; x < 64; x++)
+                {
+                    f_tex.DrawPoint(x, y, new color4i((byte)(x << 2), 0, (byte)(y << 2)));
+                }
+            }
             // Ray buffer used for storing ray cast results.
             ray_buffer = new ray[view_cols];
             for (int index = 0; index < view_cols; index++)
@@ -283,7 +294,7 @@ namespace dfe.Client.Engine
         {
             for (int x = 0; x < frameBuffer.width; x++)
             {
-                frameBuffer.ShadeTexturedWall(x, ray_buffer[x].dis, ray_buffer[x].texOfs, tex, fogColor);
+                frameBuffer.ShadeTexturedWall(x, 1, ray_buffer[x].dis, ray_buffer[x].texOfs, f_tex, fogColor);
             }
         }
         public ray rayCast(Mob obs, float ang)

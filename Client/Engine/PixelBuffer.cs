@@ -353,23 +353,26 @@ namespace dfe.Client.Engine
         /// <summary>
         /// Draw a wall column using a texture for pixel colors.
         /// </summary>
-        /// <param name="column">The pixel column to render to</param>
+        /// <param name="screenX">The pixel column to render to</param>
         /// <param name="distance">The distance of the 'wall' from the camera.</param>
         /// <param name="texOfs">The source pixel column to draw from, (value from 0..1)</param>
         /// <param name="srcImage">The source pixel buffer to render pixels from</param>
-        public void TexturedWall(int column, float distance, float texOfs, PixelBuffer srcImage)
+        public void TexturedWall(int screenX, float viewHeight, float distance, float texOfs, PixelBuffer srcImage)
         {
             // Calculate initial source texture position.
             int fp_Src = (int)((float)srcImage.height * texOfs);
             fp_Src = fp_Src * srcImage.width;
-            fp_Src = fp_Src << 16;
+            fp_Src = fp_Src << 8;
 
             // Calculate the height of the column render.
             int colHeight = height;
             if (distance != 0) colHeight = (int)(height / distance);
 
+            // Calculate view offset
+            int viewOfs = (int)(colHeight * (viewHeight - 1));
+
             // Calculate base step ratio for source texture read.
-            int fpSrcStep = (srcImage.width << 16) / colHeight; 
+            int fpSrcStep = (srcImage.width << 8) / colHeight; 
 
             // Handle columns too tall for the screen.
             if (colHeight > height || distance == 0)
@@ -380,13 +383,13 @@ namespace dfe.Client.Engine
                 colHeight = height;
             }
             // Calculate the destination data offset for the write.
-            int dst = (column * bpp) + (((height - colHeight) >> 1) * stride);
+            int dst = (screenX * bpp) + ((((height + viewOfs) - colHeight) >> 1) * stride);
             int src;
 
             // Draw the column.
             for (int i = 0; i < colHeight; i++)
             {
-                src = (fp_Src >> 16) << 2;
+                src = (fp_Src >> 8) << 2;
                 pixels[dst] = (byte)(srcImage.pixels[src]);
                 pixels[dst + 1] = (byte)(srcImage.pixels[src + 1]);
                 pixels[dst + 2] = (byte)(srcImage.pixels[src + 2]);
@@ -403,19 +406,22 @@ namespace dfe.Client.Engine
         /// <param name="texOfs">The source pixel column to draw from, (value from 0..1)</param>
         /// <param name="srcImage">The source pixel buffer to render pixels from</param>
         /// <param name="fogColor">Fog color to blend as distance increases.</param>
-        public void ShadeTexturedWall(int x, float distance, float texOfs, PixelBuffer srcImage, fog4i fogColor)
+        public void ShadeTexturedWall(int screenX, float viewHeight, float distance, float texOfs, PixelBuffer srcImage, fog4i fogColor)
         {
             // Calculate initial source texture position.
-            int fp_Src = (int)((float)srcImage.height * texOfs);
+            int fp_Src = (int)(srcImage.height * texOfs);
             fp_Src = fp_Src * srcImage.width;
-            fp_Src = fp_Src << 16;
+            fp_Src = fp_Src << 8;
 
             // Calculate the height of the column render.
             int colHeight = height;
             if (distance != 0) colHeight = (int)(height / distance);
 
+            // Calculate view offset
+            int viewOfs = (int)(colHeight * (viewHeight - 1));
+
             // Calculate base step ratio for source texture read.
-            int fp_srcStep = (srcImage.width << 16) / colHeight;
+            int fp_srcStep = (srcImage.width << 8) / colHeight;
 
             // Handle columns too tall for the screen.
             if (colHeight > height || distance == 0)
@@ -426,7 +432,7 @@ namespace dfe.Client.Engine
                 colHeight = height;
             }
             // Calculate the destination data offset for the write.
-            int dst = (x * bpp) + (((height - colHeight) >> 1) * stride);
+            int dst = (screenX * bpp) + ((((height + viewOfs) - colHeight) >> 1) * stride);
 
             // Calcualte shading values
             // Fixed point rgba maths
@@ -452,7 +458,10 @@ namespace dfe.Client.Engine
                 for (int i = 0; i < colHeight; i++)
                 {
 
-                    src = (fp_Src >> 16) << 2;
+                    src = (fp_Src >> 8) << 2;
+                    if (dst < 0 || dst >= height)
+                        break;
+
                     fp_r = (srcImage.pixels[src] * fp_srcCol) + fog_r;
                     fp_g = (srcImage.pixels[src + 1] * fp_srcCol) + fog_g;
                     fp_b = (srcImage.pixels[src + 2] * fp_srcCol) + fog_b;
@@ -472,8 +481,8 @@ namespace dfe.Client.Engine
                 // Draw the column.
                 for (int i = 0; i < colHeight;)
                 {
-                    fp_nextSrc = (fp_Src + 0x10000) & 0xFFF0000;
-                    src = (fp_Src >> 16) << 2;
+                    fp_nextSrc = (fp_Src + 0x100) & 0xFFFFF00;
+                    src = (fp_Src >> 8) << 2;
                     fp_r = ((srcImage.pixels[src] * fp_srcCol) + fog_r) >> 8;
                     fp_g = ((srcImage.pixels[src + 1] * fp_srcCol) + fog_g) >> 8;
                     fp_b = ((srcImage.pixels[src + 2] * fp_srcCol) + fog_b) >> 8;
@@ -482,10 +491,15 @@ namespace dfe.Client.Engine
                     b = (byte)fp_b;
                     while (fp_Src < fp_nextSrc && i < colHeight)
                     {
-                        pixels[dst] = r;
-                        pixels[dst + 1] = g;
-                        pixels[dst + 2] = b;
-                        pixels[dst + 3] = 255;
+                        // HACK: Nearsided renderer should really not have to do this.
+                        if (dst >= 0 && dst < pixels.Length)
+                        {
+
+                            pixels[dst] = r;
+                            pixels[dst + 1] = g;
+                            pixels[dst + 2] = b;
+                            pixels[dst + 3] = 255;
+                        }
                         fp_Src += fp_srcStep;
                         dst += stride;
                         i++;
@@ -614,6 +628,11 @@ namespace dfe.Client.Engine
                 pixels[dst + 3] = color.a;
                 dst += bpp;
             }
+        }
+
+        public void TexturedRow(int screenY, float distance, PixelBuffer srcImage)
+        {
+
         }
     }
 }
