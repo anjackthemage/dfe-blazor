@@ -3,6 +3,7 @@
 @using Engine;
 @using Microsoft.AspNetCore.SignalR.Client;
 @using dfe.Client.Engine.Network;
+@using dfe.Client.Engine.Render;
 
 @inject IJSRuntime JsRuntime;
 @inject NavigationManager NavigationManager
@@ -95,6 +96,7 @@
         map_hub_conn = new HubConnectionBuilder().WithUrl(NavigationManager.ToAbsoluteUri("/maphub")).Build();
         map_client = new MapClient(map_hub_conn);
         map_client.ray_tracer = ray_tracer;
+
         map_client.loadMapFromServer();
 
         chat_hub_conn = new HubConnectionBuilder().WithUrl(NavigationManager.ToAbsoluteUri("/chathub")).Build();
@@ -131,7 +133,8 @@
     public async ValueTask update(double time_stamp)
     {
         ray_tracer.updateObserver();
-        ray_tracer.render();
+        map_client.level_map.render();
+        //ray_tracer.render();
         ray_tracer.presentScreen(JsRuntime);
     }
 

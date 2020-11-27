@@ -21,7 +21,7 @@ namespace dfe.Shared
         public sprite[] sprites { get; set; }
     }
 
-    public class Map : IRender
+    public class Map
     {
         private string level_path = "Maps/level_test.json";
 
@@ -87,11 +87,6 @@ namespace dfe.Shared
             {
                 Console.WriteLine("Missing file at {0}", level_path);
             }
-        }
-
-        public void render()
-        {
-
         }
     }
 }
