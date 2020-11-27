@@ -3,7 +3,9 @@
 @using Engine;
 @using Microsoft.AspNetCore.SignalR.Client;
 @using dfe.Client.Engine.Network;
-@using dfe.Shared.Render
+@using dfe.Shared.Entities;
+@using dfe.Shared.Render;
+@using System.Numerics;
 
 
 @inject IJSRuntime JsRuntime;
@@ -81,6 +83,8 @@
     private ChatClient chat_client;
     private MapClient map_client;
 
+    private Mob test_sprite;
+
     // network
     private HubConnection chat_hub_conn;
     private HubConnection map_hub_conn;
@@ -103,6 +107,8 @@
         chat_hub_conn = new HubConnectionBuilder().WithUrl(NavigationManager.ToAbsoluteUri("/chathub")).Build();
         chat_client = new ChatClient(chat_hub_conn);
         chat_client.onChatUpdated += refreshMessages;
+
+        test_sprite = new Mob(new Vector2(136, 128), 0);
 
         await base.OnInitializedAsync();
     }
@@ -146,7 +152,7 @@
     {
         ray_tracer.updateObserver();
         map_client.level_map.render();
-        //ray_tracer.render();
+        ray_tracer.render();
         //ray_tracer.presentScreen(JsRuntime);
         presentScreen(JsRuntime, ray_tracer.frameBuffer);
     }

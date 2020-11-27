@@ -13,9 +13,18 @@ namespace dfe.Shared.Entities
     {
         public Vector2 position;
 
+        public byte[] sprite;
+
+        public Entity()
+        {
+
+        }
+
         public void render()
         {
-            
+            renderSprite(this);
         }
+
+        public void renderSprite(Entity ent_to_render) { }
     }
 }
