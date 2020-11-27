@@ -8,9 +8,9 @@ using dfe.Shared;
 using dfe.Shared.Entity;
 using System.Numerics;
 
-namespace dfe.Client.Engine
+namespace dfe.Client.Engine.Render
 {
-
+    
     public struct input_ctrl
     {
         public bool u;
@@ -31,35 +31,6 @@ namespace dfe.Client.Engine
             this.x = x_coord;
             this.y = y_coord;
             this.a = angle;
-        }
-    }
-
-    [ObsoleteAttribute("dfe.Client.Engine.level_map is deprecated. Use Map instead.")]
-    public struct level_map
-    {
-        public int w;
-        public int h;
-        public float[] d;
-
-        public level_map(int width, int height)
-        {
-            //Random rand = new Random();
-
-            this.w = width;
-            this.h = height;
-            this.d = new float[width * height];
-
-            //for (int index = 0; index < this.w * this.h; index++)
-            //{
-            //    if (rand.NextDouble() < 0.09)
-            //    {
-            //        this.d[index] = 1;
-            //    }
-            //    else
-            //    {
-            //        this.d[index] = 0;
-            //    }
-            //}
         }
     }
 
@@ -134,6 +105,8 @@ namespace dfe.Client.Engine
         public string[] colors;
         public Tracer()
         {
+            IRender.ray_tracer = this;
+
             frameBuffer = new PixelBuffer(view_cols, view_rows);
             tex = new PixelBuffer(16, 16);
             s_tex = new PixelBuffer(16, 16);
@@ -170,13 +143,6 @@ namespace dfe.Client.Engine
             // Current Field of Vision
             fov = (float)Math.PI / 2.8f;
 
-            //for (int index = 0; index < 16; index++)
-            //{
-            //    lvl_map.d[index] = 1;
-            //    lvl_map.d[index + 240] = 1;
-            //    lvl_map.d[index * 16] = 1;
-            //    lvl_map.d[15 + (index * 16)] = 1;
-            //}
         }
 
         /// <summary>
@@ -190,11 +156,19 @@ namespace dfe.Client.Engine
             testSprite.position.Y = 128 + (int)(Math.Sin(tFloat) * 16);
             if (testSprite.position.X >= 256)
                 testSprite.position.X = 0;
-            ray_buffer = buildRayBuffer();
+            //ray_buffer = buildRayBuffer();
+            //renderFloor();
+            //renderCeiling();
+            //renderWalls();
+            renderSprites();
+        }
+
+        public void renderLevel(Map level_map)
+        {
+            ray_buffer = buildRayBuffer(level_map);
             renderFloor();
             renderCeiling();
             renderWalls();
-            renderSprites();
         }
 
         public void rotObserver(Observer o, float a)
@@ -210,7 +184,7 @@ namespace dfe.Client.Engine
             }
         }
 
-        public ray[] buildRayBuffer()
+        public ray[] buildRayBuffer(Map level_map)
         {
             // Lazy init of the ray_buffer
             if (ray_buffer == null)
@@ -222,7 +196,7 @@ namespace dfe.Client.Engine
 
             for (int index = 0; index < view_cols; index++)
             {
-                ray_buffer[index] = rayCast(self, ray_angle);
+                ray_buffer[index] = rayCast(self, ray_angle, level_map);
                 // Dewarp
                 ray_buffer[index].dis = ray_buffer[index].dis * (float)Math.Cos(ang_diff);
                 ray_angle += ang_step;
@@ -297,7 +271,7 @@ namespace dfe.Client.Engine
                 frameBuffer.ShadeTexturedWall(x, 1, ray_buffer[x].dis, ray_buffer[x].texOfs, f_tex, fogColor);
             }
         }
-        public ray rayCast(Mob obs, float ang)
+        public ray rayCast(Mob obs, float ang, Map level_map)
         {
             Vector2 pos = obs.position;
             // Find the map cell that the observer is in.
@@ -356,7 +330,7 @@ namespace dfe.Client.Engine
             var hit = new ray(0, 0, 0, 0, false, 0);
 
             var side = 0;
-            while (mx >= 0 && mx < lvl_map.width && my >= 0 && my < lvl_map.height)
+            while (mx >= 0 && mx < level_map.width && my >= 0 && my < level_map.height)
             {
                 if (iDeltaX < iDeltaY)
                 {
@@ -370,7 +344,7 @@ namespace dfe.Client.Engine
                     my += stepY;
                     side = 1;
                 }
-                if (lvl_map.map_contents[mx + (my * lvl_map.width)] == 1)
+                if (level_map.map_contents[mx + (my * level_map.width)] == 1)
                 {
                     hit.map_x = mx;
                     hit.map_y = my;

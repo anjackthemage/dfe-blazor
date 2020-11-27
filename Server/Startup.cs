@@ -17,7 +17,8 @@ namespace dfe.Server
         {
             Configuration = configuration;
 
-            Map.current = new Map(16, 16);
+            Map.current = new Map();
+            Map.current.loadMap();
         }
 
         public IConfiguration Configuration { get; }

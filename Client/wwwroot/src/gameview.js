@@ -10,7 +10,7 @@ function initCanvas(canvas_ref) {
 	width = canvas_ref.width;
 	height = canvas_ref.height;
 
-	window.addEventListener('pointerlockchange', lockMouse, false);
+	document.addEventListener('pointerlockchange', lockMouse, false);
 }
 
 let screenImageData;
