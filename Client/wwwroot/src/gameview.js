@@ -20,7 +20,12 @@ function blitScreen(pixelData, width, height) {
 	}
 	screenImageData.data.set(Blazor.platform.toUint8Array(pixelData));
 	ctx.putImageData(screenImageData, 0, 0);
+	resizeCanvas();
 };
+
+function resizeCanvas() {
+	ctx.drawImage(game_canvas, 0, 0, 320, 240, 0, 0, 640, 480);
+}
 
 // -- Mouse Capture --
 let pointerLocked = false; 
