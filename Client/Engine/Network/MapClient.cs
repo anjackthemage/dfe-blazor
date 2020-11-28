@@ -42,11 +42,13 @@ namespace dfe.Client.Engine.Network
 
             map_hub_conn.On<int, byte[]>("receiveSprite", (sprite_id, sprite_bytes) =>
             {
+                level_map.sprites[sprite_id].pb_data = new PixelBuffer(16, 16);
                 level_map.sprites[sprite_id].pb_data.pixels = sprite_bytes;
             });
 
             map_hub_conn.On<int, byte[]>("receiveTexture", (texture_id, texture_bytes) =>
             {
+                level_map.textures[texture_id].pb_data = new PixelBuffer(64, 64);
                 level_map.textures[texture_id].pb_data.pixels = texture_bytes;
             });
 

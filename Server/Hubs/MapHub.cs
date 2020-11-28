@@ -13,8 +13,6 @@ namespace dfe.Server.Hubs
         public async Task getMap()
         {
             await Clients.Caller.SendAsync("receiveMap", Map.current);
-            Map.current.loadTextures();
-            Map.current.loadSprites();
         }
 
         public async Task getImage(string image_name)
@@ -30,29 +28,29 @@ namespace dfe.Server.Hubs
 
         public async Task getSprite(int sprite_id)
         {
-            byte[] sprite_bytes;
-            if (Map.current.sprites[sprite_id].pb_data != null)
+            byte[] texture_bytes = null;
+
+            string file_path = "Assets/Sprites/" + Map.current.textures[sprite_id].file + ".json";
+
+            if (File.Exists(file_path))
             {
-                sprite_bytes = Map.current.sprites[sprite_id].pb_data.pixels;
+                texture_bytes = Map.current.loadImage(file_path);
             }
-            else
-            {
-                sprite_bytes = new byte[0];
-            }
-            await Clients.Caller.SendAsync("receiveSprite", sprite_id, sprite_bytes);
+
+            await Clients.Caller.SendAsync("receiveSprite", sprite_id, texture_bytes);
         }
 
         public async Task getTexture(int texture_id)
         {
-            byte[] texture_bytes;
-            if (Map.current.textures[texture_id].pb_data != null)
+            byte[] texture_bytes = null;
+
+            string file_path = "Assets/Textures/" + Map.current.textures[texture_id].file + ".json";
+
+            if (File.Exists(file_path))
             {
-                texture_bytes = Map.current.textures[texture_id].pb_data.pixels;
+                texture_bytes = Map.current.loadImage(file_path);
             }
-            else
-            {
-                texture_bytes = new byte[0];
-            }
+
             await Clients.Caller.SendAsync("receiveTexture", texture_id, texture_bytes);
         }
     }

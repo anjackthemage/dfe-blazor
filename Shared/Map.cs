@@ -35,6 +35,8 @@ namespace dfe.Shared
     {
         public static Map current;
 
+        public static bool loaded = false;
+
         public int width;
         public int height;
         public float[] walls { get; set; }
@@ -157,6 +159,11 @@ namespace dfe.Shared
                     tex.pb_data.pixels = loadImage(file_path);
                 }
             }
+
+            if (!loaded)
+            {
+                loaded = true;
+            }
         }
 
         public void loadSprites()
@@ -170,6 +177,11 @@ namespace dfe.Shared
 
                     spr.pb_data.pixels = loadImage(file_path);
                 }
+            }
+
+            if(!loaded)
+            {
+                loaded = true;
             }
         }
     }

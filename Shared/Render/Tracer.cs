@@ -7,7 +7,6 @@ using System.Numerics;
 //using System.Threading.Tasks;
 using dfe.Shared;
 using dfe.Shared.Entities;
-using System.Numerics;
 
 namespace dfe.Shared.Render
 {
