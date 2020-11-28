@@ -378,7 +378,7 @@ namespace dfe.Shared.Render
                     my += stepY;
                     side = 1;
                 }
-                if (level_map.map_contents[mx + (my * level_map.width)] == 1)
+                if (level_map.walls[mx + (my * level_map.width)] == 1)
                 {
                     hit.map_x = mx;
                     hit.map_y = my;

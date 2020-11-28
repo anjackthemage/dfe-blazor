@@ -12,7 +12,9 @@ namespace dfe.Server.Hubs
     {
         public async Task getMap()
         {
-            await Clients.Caller.SendAsync("receiveMap", Map.current.map_contents);
+            Console.WriteLine("Sending map!");
+            await Clients.Caller.SendAsync("receiveMap", Map.current);
+            Console.WriteLine("Map sent!");
         }
 
         public async Task getImage(string image_name)

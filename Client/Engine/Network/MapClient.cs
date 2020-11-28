@@ -18,13 +18,26 @@ namespace dfe.Client.Engine.Network
 
         public MapClient(HubConnection new_hub_conn)
         {
-            level_map = new Map(16, 16);
             map_hub_conn = new_hub_conn;
 
-            map_hub_conn.On<float[]>("receiveMap", (data) =>
+            map_hub_conn.On<Map>("receiveMap", (data) =>
             {
-                level_map.map_contents = data;
-                ray_tracer.lvl_map = level_map;
+                Console.WriteLine("Received map!");
+                level_map = new Map(data);
+                Console.WriteLine("Textures?");
+                Console.WriteLine("Textures: {0}", level_map.textures.Length);
+                foreach (texture tex in level_map.textures)
+                {
+                    Console.WriteLine("Texture: {0}", tex.id);
+                    if (tex.pb_data != null)
+                    {
+                        Console.WriteLine("Pixels: {0}", tex.pb_data.pixels.Length);
+                        foreach (byte byt in tex.pb_data.pixels)
+                        {
+                            Console.Write("{0}, ");
+                        }
+                    }
+                }
             });
 
             map_hub_conn.On<byte[]>("receiveImage", (data) =>
