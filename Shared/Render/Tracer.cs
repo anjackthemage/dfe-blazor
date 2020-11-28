@@ -1,17 +1,17 @@
 ﻿//using Microsoft.AspNetCore.Components;
-using Microsoft.JSInterop;
+//using Microsoft.JSInterop;
 using System;
 using System.Numerics;
 //using System.Collections.Generic;
 //using System.Linq;
 //using System.Threading.Tasks;
 using dfe.Shared;
-using dfe.Shared.Entity;
+using dfe.Shared.Entities;
 using System.Numerics;
 
-namespace dfe.Client.Engine.Render
+namespace dfe.Shared.Render
 {
-    
+
     public struct input_ctrl
     {
         public bool u;
@@ -236,6 +236,39 @@ namespace dfe.Client.Engine.Render
             }
         }
 
+        public void renderSprite(Entity ent_to_render)
+        {
+            // Sort sprites from furthest to closest.
+
+            // Translate the sprites to screen space.
+
+
+            //OPTI: This code section could benefit from using some fixed point integers instead of floats.
+            float nx = (float)Math.Cos(-self.angle);
+            float ny = (float)Math.Sin(-self.angle);
+
+            float tx = (ent_to_render.position.X - self.position.X) / 16;
+            float ty = (ent_to_render.position.Y - self.position.Y) / 16;
+            float sx = ((tx * nx) - (ty * ny));
+            float sy = ((tx * ny) + (ty * nx));
+
+            // Debug Drawing 
+            // ---
+            // frameBuffer.DrawPoint((int)tx + (frameBuffer.width / 2), ((int)-ty + frameBuffer.height / 2), 255, 0, 255);
+            // frameBuffer.DrawPoint((int)sx + (frameBuffer.width / 2), ((int)-sy + frameBuffer.height / 2), 0, 255, 0);
+            // frameBuffer.DrawPoint(frameBuffer.width / 2, frameBuffer.height / 2, 255, 255, 255);
+            // ---
+
+            //OPTI: Math.Tan(fov / 2) is a constant that only needs to be calculated once.
+            float viewAdjacent = (float)(frameBuffer.width / 2) / (float)Math.Tan(fov / 2);
+            int screenX = (int)((sy / sx) * viewAdjacent);
+
+            //float screenX = (float)((sy * (frameBuffer.width >> 1)) / (Math.Tan(fov / 2)));
+            //int screenX = (int)((Math.Tan(fov / 2) * sy) * (frameBuffer.width / 2));
+            frameBuffer.DrawPoint(screenX + 160, 16, 0, 255, 255);
+            frameBuffer.DrawSpritePerspective((int)screenX + (frameBuffer.width / 2), sx, ray_buffer, ent_to_render.sprite);
+        }
+
         public void renderSprites()
         {
             // Sort sprites from furthest to closest.
@@ -268,6 +301,7 @@ namespace dfe.Client.Engine.Render
             frameBuffer.DrawPoint(screenX + 160, 16, 0, 255, 255);
             frameBuffer.DrawSpritePerspective((int)screenX + (frameBuffer.width / 2), 8, sx, ray_buffer, tex);
         }
+
         /// <summary>
         /// renderCols()
         /// 
@@ -355,7 +389,7 @@ namespace dfe.Client.Engine.Render
                     my += stepY;
                     side = 1;
                 }
-                if (level_map.map_contents[mx + (my * level_map.width)] == 1)
+                if (level_map.walls[mx + (my * level_map.width)] == 1)
                 {
                     hit.map_x = mx;
                     hit.map_y = my;
@@ -401,11 +435,11 @@ namespace dfe.Client.Engine.Render
         /// </summary>
         /// <param name="js"></param>
         /// 
-        public void presentScreen(IJSRuntime js)
-        {
-            IJSUnmarshalledRuntime umjs = (IJSUnmarshalledRuntime)js;
-            object result = umjs.InvokeUnmarshalled<byte[], int, int, object>("blitScreen", frameBuffer.pixels, frameBuffer.width, frameBuffer.height);
-        }
+        //public void presentScreen(IJSRuntime js)
+        //{
+        //    IJSUnmarshalledRuntime umjs = (IJSUnmarshalledRuntime)js;
+        //    object result = umjs.InvokeUnmarshalled<byte[], int, int, object>("blitScreen", frameBuffer.pixels, frameBuffer.width, frameBuffer.height);
+        //}
 
         public void updateObserver()
         {

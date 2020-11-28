@@ -4,9 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace dfe.Shared.Entity
+
+namespace dfe.Shared.Entities
 {
-    public class Entity
+    class Player : Mob
     {
+        
     }
 }

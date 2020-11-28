@@ -17,8 +17,7 @@ namespace dfe.Server
         {
             Configuration = configuration;
 
-            Map.current = new Map();
-            Map.current.loadMap();
+            Map.current = new Map("level_test");
         }
 
         public IConfiguration Configuration { get; }

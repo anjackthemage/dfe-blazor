@@ -3,7 +3,10 @@
 @using Engine;
 @using Microsoft.AspNetCore.SignalR.Client;
 @using dfe.Client.Engine.Network;
-@using dfe.Client.Engine.Render;
+@using dfe.Shared.Entities;
+@using dfe.Shared.Render;
+@using System.Numerics;
+
 
 @inject IJSRuntime JsRuntime;
 @inject NavigationManager NavigationManager
@@ -11,9 +14,9 @@
 
 <div id="game_view_container">
     <div>
-        <canvas tabindex="0" id="game_canvas" width="640" height="480" 
-                @ref="render_canvas" 
-                @onkeydown="handleKeyDown" 
+        <canvas tabindex="0" id="game_canvas" width="640" height="480"
+                @ref="render_canvas"
+                @onkeydown="handleKeyDown"
                 @onkeyup="handleKeyUp"
                 @onpointerdown="handlePointerDown"
                 @onmousemove="handleMouse">
@@ -62,7 +65,7 @@
 </div>
 
 <div id="audio-elements">
-    <input type="checkbox" @onchange="muteClicked" checked/> <label>Mute</label>
+    <input type="checkbox" @onchange="muteClicked" checked /> <label>Mute</label>
     @* For organization purposes, this will contain the audio elements until we have a better audio system in place. *@
 </div>
 
@@ -79,6 +82,8 @@
     private Tracer ray_tracer;
     private ChatClient chat_client;
     private MapClient map_client;
+
+    private Mob test_mob;
 
     // network
     private HubConnection chat_hub_conn;
@@ -102,6 +107,9 @@
         chat_hub_conn = new HubConnectionBuilder().WithUrl(NavigationManager.ToAbsoluteUri("/chathub")).Build();
         chat_client = new ChatClient(chat_hub_conn);
         chat_client.onChatUpdated += refreshMessages;
+
+        test_mob = new Mob(new Vector2(200, 128), 0);
+        test_mob.sprite = ray_tracer.s_tex;
 
         await base.OnInitializedAsync();
     }
@@ -129,13 +137,26 @@
         await JsRuntime.InvokeVoidAsync("setAllAudioMute", b_is_audio_muted);
     }
 
+    /// <summary>
+    /// Presents the screen to the user by calling the blitScreen javascript function.
+    /// </summary>
+    /// <param name="js"></param>
+    ///
+    public void presentScreen(IJSRuntime js, PixelBuffer frameBuffer)
+    {
+        IJSUnmarshalledRuntime umjs = (IJSUnmarshalledRuntime)js;
+        object result = umjs.InvokeUnmarshalled<byte[], int, int, object>("blitScreen", frameBuffer.pixels, frameBuffer.width, frameBuffer.height);
+    }
+
     [JSInvokable]
     public async ValueTask update(double time_stamp)
     {
         ray_tracer.updateObserver();
         map_client.level_map.render();
-        //ray_tracer.render();
-        ray_tracer.presentScreen(JsRuntime);
+        ray_tracer.render();
+        test_mob.render();
+        //ray_tracer.presentScreen(JsRuntime);
+        presentScreen(JsRuntime, ray_tracer.frameBuffer);
     }
 
     [JSInvokable]

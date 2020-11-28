@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace dfe.Client.Engine.Render
+namespace dfe.Shared.Render
 {
     /// <summary>
     /// An RGBA color with byte components.

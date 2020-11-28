@@ -24,7 +24,7 @@ function blitScreen(pixelData, width, height) {
 };
 
 function resizeCanvas() {
-	ctx.drawImage(game_canvas, 0, 0, 320, 240, 0, 0, 640, 480);
+	ctx.drawImage(game_canvas, 0, 0, 320, 240, 0, 0, game_canvas.width, game_canvas.height);
 }
 
 // -- Mouse Capture --
