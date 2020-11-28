@@ -1,6 +1,7 @@
 ﻿//using Microsoft.AspNetCore.Components;
 //using Microsoft.JSInterop;
 using System;
+using System.Numerics;
 //using System.Collections.Generic;
 //using System.Linq;
 //using System.Threading.Tasks;
@@ -38,8 +39,12 @@ namespace dfe.Shared.Render
     /// Describes a ray -> map intersection.
     /// Used for detecting where a ray hits a block on the blockmap.
     /// </summary>
-    public struct ray
+    public class Ray
     {
+        // X angle of the ray.
+        public float ax;
+        // Y angle of the ray.
+        public float ay;
         // X coordinate ray hit.
         public float x;
         // Y coordinate ray hit.
@@ -54,8 +59,10 @@ namespace dfe.Shared.Render
         public float texOfs;
         // The distance, in map units, from the cast point.
         public float dis;
-        public ray(float x_coord, float y_coord, int map_x, int map_y, bool hit, float new_d)
+        public Ray(float x_coord, float y_coord, int map_x, int map_y, bool hit, float new_d)
         {
+            this.ax = 1; 
+            this.ay = 0; 
             this.x = x_coord;
             this.y = y_coord;
             this.map_x = map_x;
@@ -93,11 +100,9 @@ namespace dfe.Shared.Render
         // Map Object
         public Map lvl_map = new Map(16, 16);
         // Ray Data Array
-        public ray[] ray_buffer;
+        public Ray[] ray_buffer;
         // Field of View
         public float fov;
-        // Last mouse position : TODO: Deprecate me
-        public float lastMouseX;
 
         public Mob testSprite = new Mob(new Vector2(136, 128), 0);
 
@@ -134,41 +139,27 @@ namespace dfe.Shared.Render
                 }
             }
             // Ray buffer used for storing ray cast results.
-            ray_buffer = new ray[view_cols];
+            ray_buffer = new Ray[view_cols];
             for (int index = 0; index < view_cols; index++)
             {
-                ray_buffer[index] = new ray(0, 0, 0, 0, false, 0);
+                ray_buffer[index] = new Ray(0, 0, 0, 0, false, 0);
             }
 
             // Current Field of Vision
             fov = (float)Math.PI / 2.8f;
 
         }
-
         /// <summary>
-        /// Render a single frame.
+        /// Render the current Level
         /// </summary>
-        float tFloat = 0;
-        public void render()
-        {
-            tFloat += 0.1f;
-            testSprite.position.X += 1;
-            testSprite.position.Y = 128 + (int)(Math.Sin(tFloat) * 16);
-            if (testSprite.position.X >= 256)
-                testSprite.position.X = 0;
-            //ray_buffer = buildRayBuffer();
-            //renderFloor();
-            //renderCeiling();
-            //renderWalls();
-            renderSprites();
-        }
-
+        /// <param name="level_map">The map to perform raytracing against.</param>
         public void renderLevel(Map level_map)
         {
             ray_buffer = buildRayBuffer(level_map);
             renderFloor();
             renderCeiling();
             renderWalls();
+            //renderSprites();
         }
 
         public void rotObserver(Observer o, float a)
@@ -184,11 +175,11 @@ namespace dfe.Shared.Render
             }
         }
 
-        public ray[] buildRayBuffer(Map level_map)
+        public Ray[] buildRayBuffer(Map level_map)
         {
             // Lazy init of the ray_buffer
             if (ray_buffer == null)
-                ray_buffer = new ray[view_cols];
+                ray_buffer = new Ray[view_cols];
 
             float ang_step = fov / view_cols;
             float ray_angle = self.angle - (fov / 2);
@@ -196,7 +187,7 @@ namespace dfe.Shared.Render
 
             for (int index = 0; index < view_cols; index++)
             {
-                ray_buffer[index] = rayCast(self, ray_angle, level_map);
+                rayCast(self, ray_angle, level_map, ray_buffer[index]);
                 // Dewarp
                 ray_buffer[index].dis = ray_buffer[index].dis * (float)Math.Cos(ang_diff);
                 ray_angle += ang_step;
@@ -206,6 +197,23 @@ namespace dfe.Shared.Render
         }
         public void renderFloor()
         {
+            try
+            {
+                float obsX = -self.position.X / grid_x;
+                float obsY = -self.position.Y / grid_y;
+                Ray leftAngles = ray_buffer[0];
+                Ray rightAngles = ray_buffer[ray_buffer.Length - 1];
+                for (int screenY = frameBuffer.height / 2; screenY < frameBuffer.height; screenY++)
+                {
+                    frameBuffer.TexturedRow(screenY, 1, obsX, obsY, leftAngles, rightAngles, tex
+                        
+                        );
+                }
+            } catch (Exception e)
+            {
+                Console.Write(e.Message);
+            }
+            /*
             color4i floorColor = new color4i(0xFF808080);
             float dchange = 1 / 15f;
             float distance = (frameBuffer.height / 2) * dchange;
@@ -213,7 +221,8 @@ namespace dfe.Shared.Render
             {
                 frameBuffer.ShadeRow(y, distance, floorColor, fogColor);
                 distance -= dchange;
-            }
+            }*/
+            
         }
         public void renderCeiling()
         {
@@ -290,7 +299,7 @@ namespace dfe.Shared.Render
             //float screenX = (float)((sy * (frameBuffer.width >> 1)) / (Math.Tan(fov / 2)));
             //int screenX = (int)((Math.Tan(fov / 2) * sy) * (frameBuffer.width / 2));
             frameBuffer.DrawPoint(screenX + 160, 16, 0, 255, 255);
-            frameBuffer.DrawSpritePerspective((int)screenX + (frameBuffer.width / 2), sx, ray_buffer, s_tex);
+            frameBuffer.DrawSpritePerspective((int)screenX + (frameBuffer.width / 2), 8, sx, ray_buffer, tex);
         }
 
         /// <summary>
@@ -305,7 +314,7 @@ namespace dfe.Shared.Render
                 frameBuffer.ShadeTexturedWall(x, 1, ray_buffer[x].dis, ray_buffer[x].texOfs, f_tex, fogColor);
             }
         }
-        public ray rayCast(Mob obs, float ang, Map level_map)
+        public Ray rayCast(Mob obs, float ang, Map level_map, Ray hit)
         {
             Vector2 pos = obs.position;
             // Find the map cell that the observer is in.
@@ -319,6 +328,10 @@ namespace dfe.Shared.Render
             // Calculate the unit vector
             float nx = (float)Math.Cos(ang);
             float ny = (float)Math.Sin(ang);
+
+            // Store the ray vector for floor casting later.
+            hit.ax = nx;
+            hit.ay = ny;
 
             // Length of the ray to the next x or y intersection
             float deltaX = 0;
@@ -360,8 +373,6 @@ namespace dfe.Shared.Render
                 stepY = 1;
                 iDeltaY = (1 - (obsGridY - my)) * deltaY;
             }
-
-            var hit = new ray(0, 0, 0, 0, false, 0);
 
             var side = 0;
             while (mx >= 0 && mx < level_map.width && my >= 0 && my < level_map.height)
