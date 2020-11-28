@@ -13,6 +13,12 @@ namespace dfe.Server.Hubs
         public async Task getMap()
         {
             Console.WriteLine("Sending map!");
+            Console.WriteLine("Map: {0}", Map.current.name);
+            Console.WriteLine("Textures: {0}", Map.current.textures.Length);
+            foreach(texture tex in Map.current.textures)
+            {
+                Console.Write("{0}, ", tex.id);
+            }
             await Clients.Caller.SendAsync("receiveMap", Map.current);
             Console.WriteLine("Map sent!");
         }

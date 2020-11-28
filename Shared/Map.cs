@@ -60,6 +60,11 @@ namespace dfe.Shared
 
         public Map(Map ref_map)
         {
+            cloneMap(ref_map);
+        }
+
+        private void cloneMap(Map ref_map)
+        {
             this.width = ref_map.width;
             this.height = ref_map.height;
             this.name = ref_map.name;
@@ -118,14 +123,7 @@ namespace dfe.Shared
             {
                 string json_str = File.ReadAllText(file_path);
                 
-                Map temp_map = new Map(JsonSerializer.Deserialize<Map>(json_str));
-
-                this.name = temp_map.name;
-                this.walls = temp_map.walls;
-                this.textures = temp_map.textures;
-                this.sprites = temp_map.sprites;
-                this.entities = temp_map.entities;
-                this.mobs = temp_map.mobs;
+                cloneMap(new Map(JsonSerializer.Deserialize<Map>(json_str)));
 
                 Console.WriteLine("Loaded Map Name: {0}", this.name.ToString());
 
