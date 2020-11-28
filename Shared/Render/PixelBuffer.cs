@@ -1,4 +1,4 @@
-﻿using dfe.Shared.Entity;
+﻿using dfe.Shared.Entities;
 using System;
 using System.Numerics;
 using System.Collections.Generic;
