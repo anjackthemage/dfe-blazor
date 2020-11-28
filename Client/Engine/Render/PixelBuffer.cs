@@ -1,4 +1,6 @@
-﻿using System;
+﻿using dfe.Shared.Entity;
+using System;
+using System.Numerics;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -133,7 +135,7 @@ namespace dfe.Client.Engine.Render
         // Debugging color for bounds of a visible sprite.
         private static color4i visibleColor = new color4i(255, 255, 255);
         // Overall width of the buffer, in pixels.
-        public readonly int width;
+        public int width;
         // Overall height of the buffer, in pixels.
         public readonly int height;
         // The stride of the buffer -or- the data size of one row of pixels in bytes.
@@ -290,7 +292,7 @@ namespace dfe.Client.Engine.Render
         /// <param name="height">Height of the rectangle at distance = 1</param>
         /// <param name="ray_buffer">A ray buffer to do distance clipping against.</param>
         /// <param name="color">The color to render the rectangle.</param>
-        public void DrawRectPerspective(int screenX, float distance, int width, int height, ray[] ray_buffer, color4i color)
+        public void DrawRectPerspective(int screenX, float distance, int width, int height, Ray[] ray_buffer, color4i color)
         {
             width = (int)(width / distance);
             height = (int)(height / distance);
@@ -507,6 +509,7 @@ namespace dfe.Client.Engine.Render
                 }
             }
         }
+
         /// <summary>
         /// Render a bilboard sprite at a specific distance with depth clipping.
         /// </summary>
@@ -514,10 +517,22 @@ namespace dfe.Client.Engine.Render
         /// <param name="distance">Distance from the camera to render.</param>
         /// <param name="ray_buffer">A ray buffer to do distance clipping against.</param>
         /// <param name="sprite">Pixel buffer to use as a source texture.</param>
-        public void DrawSpritePerspective(int screenX, float distance, ray[] ray_buffer, PixelBuffer sprite)
+        public void DrawSpritePerspective(int screenX, float distance, Ray[] ray_buffer, PixelBuffer sprite)
         {
-            int w = (int)((sprite.width << 4) / distance);
-            int h = (int)((sprite.height << 4) / distance);
+            DrawSpritePerspective(screenX, 1, distance, ray_buffer, sprite);
+        }
+        /// <summary>
+        /// Render a bilboard sprite at a specific distance with depth clipping.
+        /// </summary>
+        /// <param name="screenX">X Coordinate of the rectangle's center</param>
+        /// <param name="scale">Scaling factor for this sprite</param>
+        /// <param name="distance">Distance from the camera to render.</param>
+        /// <param name="ray_buffer">A ray buffer to do distance clipping against.</param>
+        /// <param name="sprite">Pixel buffer to use as a source texture.</param>
+        public void DrawSpritePerspective(int screenX, float scale, float distance, Ray[] ray_buffer, PixelBuffer sprite)
+        {
+            int w = (int)((sprite.width * scale) / distance);
+            int h = (int)((sprite.height * scale) / distance);
             int hw = (int)((w >> 1));
             int hh = (int)((h >> 1));
             if (w <= 0 || h <= 0)
@@ -543,8 +558,8 @@ namespace dfe.Client.Engine.Render
             // Draw the sprite
 
             // Control vars
-            int fp_src_yStep = (sprite.height << 16) / cRect.h;
-            int fp_src_xStep = (sprite.width << 16) / cRect.w;
+            int fp_src_yStep = (sprite.height << 8) / cRect.h;
+            int fp_src_xStep = (sprite.width << 8) / cRect.w;
 
             // Textures are rendered at 90 degrees due to column rendering
             int fp_src_ix = ((cRect.top - cRect.y) * fp_src_xStep);
@@ -563,13 +578,13 @@ namespace dfe.Client.Engine.Render
             for (; cRect.left < cRect.right; cRect.left++)
             {
                 dst = dst_i;
-                fp_src = ((fp_src_iy & 0x7FFF0000) * sprite.width) + fp_src_ix;
+                fp_src = ((fp_src_iy & 0x7FFFFF00) * sprite.width) + fp_src_ix;
                 // If the sprite is clipped here, we're done.
                 if (ray_buffer[cRect.left].dis < distance)
                     break;
                 for (int t = cRect.top; t < cRect.bot; t++)
                 {
-                    src = (fp_src >> 16) << 2;
+                    src = (fp_src >> 8) << 2;
                     if (src >= sprite.pixels.Length)
                         break;
                     pixels[dst] = sprite.pixels[src];
@@ -629,9 +644,37 @@ namespace dfe.Client.Engine.Render
                 dst += bpp;
             }
         }
-
-        public void TexturedRow(int screenY, float distance, PixelBuffer srcImage)
+        public int pass;
+        public void TexturedRow(int screenY, float viewHeight, float obsX, float obsY, Ray leftAngles, Ray rightAngles, PixelBuffer srcImage)
         {
+
+            int row = (height / 2) - screenY;
+            float z = 0.5f * height;
+            float rowDist = z / row;
+
+            float floorStepX = rowDist * (rightAngles.ax - leftAngles.ax) / width;
+            float floorStepY = rowDist * (rightAngles.ay - leftAngles.ay) / width;
+
+            float floorX = obsX + rowDist * leftAngles.ax;
+            float floorY = obsY + rowDist * leftAngles.ay;
+
+            int u, v;
+            int src;
+            int dst = screenY * stride;
+
+            for(int x = 0; x < width; x++)
+            {
+                u = (int)(srcImage.width * (floorX)) & (srcImage.width - 1);
+                v = (int)(srcImage.height * (floorY)) & (srcImage.height - 1);
+                floorX += floorStepX;
+                floorY += floorStepY;
+                src = (u << 2) + (v * srcImage.stride);
+                pixels[dst] = srcImage.pixels[src];
+                pixels[dst + 1] = srcImage.pixels[src + 1];
+                pixels[dst + 2] = srcImage.pixels[src + 2];
+                pixels[dst + 3] = 255;
+                dst += 4;
+            }
 
         }
     }
