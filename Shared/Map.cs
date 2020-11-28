@@ -147,15 +147,11 @@ namespace dfe.Shared
 
         public void loadTextures()
         {
-
-            Console.WriteLine("Loading textures: {0}", this.textures.Length);
             foreach (texture tex in this.textures)
             {
                 string file_path = "Assets/Textures/" + tex.file;
-                Console.WriteLine("Checking for {0}", file_path);
                 if (File.Exists(file_path))
                 {
-                    Console.WriteLine("LOADING TEXTURE FROM FILE");
                     tex.pb_data = new PixelBuffer(64, 64);
 
                     tex.pb_data.pixels = loadImage(file_path);
@@ -165,14 +161,11 @@ namespace dfe.Shared
 
         public void loadSprites()
         {
-            Console.WriteLine("Loading sprites: {0}", this.sprites.Length);
             foreach(sprite spr in this.sprites)
             {
                 string file_path = "Assets/Sprites/" + spr.file;
-                Console.WriteLine("Checking for {0}", file_path);
                 if(File.Exists(file_path))
                 {
-                    Console.WriteLine("LOADING SPRITE FROM FILE");
                     spr.pb_data = new PixelBuffer(16, 16);
 
                     spr.pb_data.pixels = loadImage(file_path);

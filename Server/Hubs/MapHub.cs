@@ -12,15 +12,9 @@ namespace dfe.Server.Hubs
     {
         public async Task getMap()
         {
-            Console.WriteLine("Sending map!");
-            Console.WriteLine("Map: {0}", Map.current.name);
-            Console.WriteLine("Textures: {0}", Map.current.textures.Length);
-            foreach(texture tex in Map.current.textures)
-            {
-                Console.Write("{0}, ", tex.id);
-            }
             await Clients.Caller.SendAsync("receiveMap", Map.current);
-            Console.WriteLine("Map sent!");
+            Map.current.loadTextures();
+            Map.current.loadSprites();
         }
 
         public async Task getImage(string image_name)
@@ -32,6 +26,34 @@ namespace dfe.Server.Hubs
             //Console.WriteLine("Image: {0}", image_str);
             await Clients.Caller.SendAsync("receiveImage", image_bytes);
             
+        }
+
+        public async Task getSprite(int sprite_id)
+        {
+            byte[] sprite_bytes;
+            if (Map.current.sprites[sprite_id].pb_data != null)
+            {
+                sprite_bytes = Map.current.sprites[sprite_id].pb_data.pixels;
+            }
+            else
+            {
+                sprite_bytes = new byte[0];
+            }
+            await Clients.Caller.SendAsync("receiveSprite", sprite_id, sprite_bytes);
+        }
+
+        public async Task getTexture(int texture_id)
+        {
+            byte[] texture_bytes;
+            if (Map.current.textures[texture_id].pb_data != null)
+            {
+                texture_bytes = Map.current.textures[texture_id].pb_data.pixels;
+            }
+            else
+            {
+                texture_bytes = new byte[0];
+            }
+            await Clients.Caller.SendAsync("receiveTexture", texture_id, texture_bytes);
         }
     }
 }

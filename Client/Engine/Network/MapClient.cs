@@ -22,21 +22,15 @@ namespace dfe.Client.Engine.Network
 
             map_hub_conn.On<Map>("receiveMap", (data) =>
             {
-                Console.WriteLine("Received map!");
                 level_map = new Map(data);
-                Console.WriteLine("Textures?");
-                Console.WriteLine("Textures: {0}", level_map.textures.Length);
                 foreach (texture tex in level_map.textures)
                 {
-                    Console.WriteLine("Texture: {0}", tex.id);
-                    if (tex.pb_data != null)
-                    {
-                        Console.WriteLine("Pixels: {0}", tex.pb_data.pixels.Length);
-                        foreach (byte byt in tex.pb_data.pixels)
-                        {
-                            Console.Write("{0}, ");
-                        }
-                    }
+                    map_hub_conn.SendAsync("getTexture", tex.id);
+                }
+
+                foreach (sprite spr in level_map.sprites)
+                {
+                    map_hub_conn.SendAsync("getSprite", spr.id);
                 }
             });
 
@@ -44,6 +38,16 @@ namespace dfe.Client.Engine.Network
             {
                 ray_tracer.s_tex.pixels = data;
 
+            });
+
+            map_hub_conn.On<int, byte[]>("receiveSprite", (sprite_id, sprite_bytes) =>
+            {
+                level_map.sprites[sprite_id].pb_data.pixels = sprite_bytes;
+            });
+
+            map_hub_conn.On<int, byte[]>("receiveTexture", (texture_id, texture_bytes) =>
+            {
+                level_map.textures[texture_id].pb_data.pixels = texture_bytes;
             });
 
             map_hub_conn.StartAsync();
