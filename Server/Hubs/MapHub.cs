@@ -30,11 +30,11 @@ namespace dfe.Server.Hubs
         {
             byte[] texture_bytes = null;
 
-            string file_path = "Assets/Sprites/" + Map.current.textures[sprite_id].file + ".json";
+            string file_path = "Assets/Sprites/" + Map.current.textures[sprite_id].file;
 
             if (File.Exists(file_path))
             {
-                texture_bytes = Map.current.loadImage(file_path);
+                texture_bytes = loadImage(file_path);
             }
 
             await Clients.Caller.SendAsync("receiveSprite", sprite_id, texture_bytes);
@@ -44,14 +44,22 @@ namespace dfe.Server.Hubs
         {
             byte[] texture_bytes = null;
 
-            string file_path = "Assets/Textures/" + Map.current.textures[texture_id].file + ".json";
+            string file_path = "Assets/Textures/" + Map.current.textures[texture_id].file;
 
             if (File.Exists(file_path))
             {
-                texture_bytes = Map.current.loadImage(file_path);
+                texture_bytes = loadImage(file_path);
             }
-
             await Clients.Caller.SendAsync("receiveTexture", texture_id, texture_bytes);
+        }
+
+        public byte[] loadImage(string file_path)
+        {
+            Stream image_fs = new FileStream(file_path, FileMode.Open, FileAccess.Read, FileShare.Read);
+            byte[] image_bytes = new byte[image_fs.Length];
+            image_fs.Read(image_bytes);
+
+            return image_bytes;
         }
     }
 }
