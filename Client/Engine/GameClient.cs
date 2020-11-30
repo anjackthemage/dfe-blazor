@@ -17,15 +17,16 @@ namespace dfe.Client.Engine
             client = this;
             b_is_running = true;
 
-            doGameLoop();
-        }
-
-        private async Task doGameLoop()
-        {
+            //doGameLoop();
             while (b_is_running)
             {
                 // do client stuff
             }
+        }
+
+        private async Task doGameLoop()
+        {
+            
         }
     }
 }

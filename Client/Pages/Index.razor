@@ -31,11 +31,6 @@
     </div>
 </div>
 
-@if (img_test != null)
-{
-    <img id="img_test" src="@img_test" />
-}
-
 <div id="chat_container">
 
     <hr />
@@ -73,11 +68,9 @@
 
     // TODO: Need to store a cookie on client machine to save options state (mute, etc,)
 
-    GameClient game_client = new GameClient();
+    //GameClient game_client = new GameClient();
 
     protected ElementReference render_canvas;
-
-    private string img_test;
 
     private bool b_is_audio_muted = true;
 
@@ -155,7 +148,7 @@
     {
         ray_tracer.updateObserver();
         map_client.level_map.render();
-        test_mob.render();
+        //test_mob.render();
         //ray_tracer.presentScreen(JsRuntime);
         presentScreen(JsRuntime, ray_tracer.frameBuffer);
     }

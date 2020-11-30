@@ -18,7 +18,7 @@ namespace dfe.Server
         {
             Configuration = configuration;
 
-            GameServer game_server = new GameServer();
+            //GameServer game_server = new GameServer();
 
             Map.current = new Map("level_test");
         }
