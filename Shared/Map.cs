@@ -82,14 +82,19 @@ namespace dfe.Shared
         {
             foreach (Entity ent in this.entities)
             {
-                ent.sprite = this.textures[ent.sprite_id].pb_data;
+                ent.sprite = this.sprites[ent.sprite_id].pb_data;
                 ent.position = new Vector2(ent.coord.X, ent.coord.Y);
             }
 
             foreach (Mob mob in this.mobs)
             {
-                mob.sprite = this.textures[mob.sprite_id].pb_data;
+                mob.sprite = this.sprites[mob.sprite_id].pb_data;
                 mob.position = new Vector2(mob.coord.X, mob.coord.Y);
+
+                foreach(byte bte in mob.sprite.pixels)
+                {
+                    Console.Write("{0}, ", bte);
+                }
             }
         }
 
@@ -104,12 +109,13 @@ namespace dfe.Shared
             //    ent.render();
             //}
 
-            //foreach (Mob mob in mobs)
-            //{
-            //    Console.WriteLine("Rendering MOB");
-            //    Console.WriteLine("Type: {0} Sprite ID: {1} X: {2} Y: {3}", mob.type, mob.sprite_id, mob.position.X, mob.position.Y);
-            //    mob.render();
-            //}
+            foreach (Mob mob in mobs)
+            {
+                //Console.WriteLine("Rendering MOB");
+                //Console.WriteLine("Type: {0} Sprite ID: {1} X: {2} Y: {3}", mob.type, mob.sprite_id, mob.position.X, mob.position.Y);
+                mob.render();
+                
+            }
         }
 
         public void generateMap(int width, int height)

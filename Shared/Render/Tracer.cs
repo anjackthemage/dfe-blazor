@@ -240,11 +240,6 @@ namespace dfe.Shared.Render
 
         public void renderSprite(Entity ent_to_render)
         {
-            // Sort sprites from furthest to closest.
-
-            // Translate the sprites to screen space.
-
-
             //OPTI: This code section could benefit from using some fixed point integers instead of floats.
             float nx = (float)Math.Cos(-self.angle);
             float ny = (float)Math.Sin(-self.angle);
@@ -254,21 +249,14 @@ namespace dfe.Shared.Render
             float sx = ((tx * nx) - (ty * ny));
             float sy = ((tx * ny) + (ty * nx));
 
-            // Debug Drawing 
-            // ---
-            // frameBuffer.DrawPoint((int)tx + (frameBuffer.width / 2), ((int)-ty + frameBuffer.height / 2), 255, 0, 255);
-            // frameBuffer.DrawPoint((int)sx + (frameBuffer.width / 2), ((int)-sy + frameBuffer.height / 2), 0, 255, 0);
-            // frameBuffer.DrawPoint(frameBuffer.width / 2, frameBuffer.height / 2, 255, 255, 255);
-            // ---
 
             //OPTI: Math.Tan(fov / 2) is a constant that only needs to be calculated once.
             float viewAdjacent = (float)(frameBuffer.width / 2) / (float)Math.Tan(fov / 2);
             int screenX = (int)((sy / sx) * viewAdjacent);
 
-            //float screenX = (float)((sy * (frameBuffer.width >> 1)) / (Math.Tan(fov / 2)));
-            //int screenX = (int)((Math.Tan(fov / 2) * sy) * (frameBuffer.width / 2));
             frameBuffer.DrawPoint(screenX + 160, 16, 0, 255, 255);
             frameBuffer.DrawSpritePerspective((int)screenX + (frameBuffer.width / 2), sx, ray_buffer, ent_to_render.sprite);
+            
         }
 
         public void renderSprites()

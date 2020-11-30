@@ -23,21 +23,26 @@ namespace dfe.Server.Hubs
             //string image_str = System.Text.Encoding.UTF8.GetString(image_bytes);
             //Console.WriteLine("Image: {0}", image_str);
             await Clients.Caller.SendAsync("receiveImage", image_bytes);
-            
+
         }
 
         public async Task getSprite(int sprite_id)
         {
-            byte[] texture_bytes = null;
+            byte[] sprite_bytes = null;
 
-            string file_path = "Assets/Sprites/" + Map.current.textures[sprite_id].file;
+            string file_path = "Assets/Sprites/" + Map.current.sprites[sprite_id].file;
 
             if (File.Exists(file_path))
             {
-                texture_bytes = loadImage(file_path);
+                sprite_bytes = loadImage(file_path);
+            }
+            else
+            {
+                Console.WriteLine("File not found: {0}", file_path);
             }
 
-            await Clients.Caller.SendAsync("receiveSprite", sprite_id, texture_bytes);
+            await Clients.Caller.SendAsync("receiveSprite", sprite_id, sprite_bytes);
+
         }
 
         public async Task getTexture(int texture_id)
@@ -50,6 +55,11 @@ namespace dfe.Server.Hubs
             {
                 texture_bytes = loadImage(file_path);
             }
+            else
+            {
+                Console.WriteLine("File not found: {0}", file_path);
+            }
+
             await Clients.Caller.SendAsync("receiveTexture", texture_id, texture_bytes);
         }
 
