@@ -12,7 +12,7 @@ namespace dfe.Server.Hubs
         List<Mob> connected_player_list = new List<Mob>();
         public async Task registerPlayerConnection(string player_name)
         {
-            
+
         }
     }
 }

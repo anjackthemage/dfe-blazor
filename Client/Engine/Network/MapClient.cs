@@ -45,7 +45,7 @@ namespace dfe.Client.Engine.Network
                 level_map.sprites[sprite_id].pb_data = new PixelBuffer(16, 16);
                 level_map.sprites[sprite_id].pb_data.pixels = sprite_bytes;
 
-
+                // TODO: initMap should only be called once, after all sprites and textures have been received
                 level_map.initMap();
             });
 
@@ -54,6 +54,7 @@ namespace dfe.Client.Engine.Network
                 level_map.textures[texture_id].pb_data = new PixelBuffer(64, 64);
                 level_map.textures[texture_id].pb_data.pixels = texture_bytes;
 
+                level_map.initMap();
             });
 
             map_hub_conn.StartAsync();

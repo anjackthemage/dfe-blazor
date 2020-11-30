@@ -103,16 +103,13 @@ namespace dfe.Shared
             IRender render = this;
             render.renderMap(this);
 
-            //foreach (Entity ent in entities)
-            //{
-            //    Console.WriteLine("Rendering ENT");
-            //    ent.render();
-            //}
+            foreach (Entity ent in entities)
+            {
+                ent.render();
+            }
 
             foreach (Mob mob in mobs)
             {
-                //Console.WriteLine("Rendering MOB");
-                //Console.WriteLine("Type: {0} Sprite ID: {1} X: {2} Y: {3}", mob.type, mob.sprite_id, mob.position.X, mob.position.Y);
                 mob.render();
                 
             }
