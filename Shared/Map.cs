@@ -98,22 +98,13 @@ namespace dfe.Shared
             {
                 if (rng.NextDouble() < 0.09)
                 {
-                    this.walls[index] = 1;
+                    this.walls[index] = rng.Next(1, 3);
                 }
                 else
                 {
                     this.walls[index] = 0;
                 }
             }
-
-            for (int index = 0; index < 16; index++)
-            {
-                this.walls[index] = 1;
-                this.walls[index + 240] = 1;
-                this.walls[index * 16] = 1;
-                this.walls[15 + (index * 16)] = 1;
-            }
-
         }
 
         public void loadMap(string file_path)
@@ -183,6 +174,11 @@ namespace dfe.Shared
             {
                 loaded = true;
             }
+        }
+
+        public texture getWallTexture(int id)
+        {
+            return textures[id];
         }
     }
 }

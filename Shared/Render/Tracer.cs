@@ -54,6 +54,8 @@ namespace dfe.Shared.Render
         public int map_y;
         // Bool value stating whether this ray hit or not.
         public bool hit;
+        // Texture index of hit.
+        public int wallId;
         // Texture offset where the hit occured.
         public float texOfs;
         // The distance, in map units, from the cast point.
@@ -107,6 +109,7 @@ namespace dfe.Shared.Render
 
         // Color gradient for fun :)
         public string[] colors;
+        public Map big_map;
         public Tracer()
         {
             IRender.ray_tracer = this;
@@ -157,8 +160,8 @@ namespace dfe.Shared.Render
             ray_buffer = buildRayBuffer(level_map);
             renderFloor();
             renderCeiling();
-            renderWalls();
-            //renderSprites();
+            renderWalls(level_map);
+            renderSprites();
         }
 
         public void rotObserver(Observer o, float a)
@@ -306,11 +309,21 @@ namespace dfe.Shared.Render
         /// 
         /// Renders the ray_buffer to the screen buffer. 
         /// </summary>
-        public void renderWalls()
+        public void renderWalls(Map level_map)
         {
+            Ray ray;
             for (int x = 0; x < frameBuffer.width; x++)
             {
-                frameBuffer.ShadeTexturedWall(x, 1, ray_buffer[x].dis, ray_buffer[x].texOfs, f_tex, fogColor);
+                ray = ray_buffer[x];
+                // TODO: Cleanup this little code block.
+                PixelBuffer texBuffer = null;
+                if (ray.wallId == 1)
+                    texBuffer = f_tex;
+                else if (ray.wallId == 2)
+                    texBuffer = s_tex;
+                
+                // frameBuffer.ShadeTexturedWall(x, 1, ray.dis, ray.texOfs, level_map.getWallTexture(ray.wallId).pb_data, fogColor);
+                frameBuffer.ShadeTexturedWall(x, 1, ray.dis, ray.texOfs, texBuffer, fogColor);
             }
         }
         public Ray rayCast(Mob obs, float ang, Map level_map, Ray hit)
@@ -388,8 +401,9 @@ namespace dfe.Shared.Render
                     my += stepY;
                     side = 1;
                 }
-                if (level_map.walls[mx + (my * level_map.width)] == 1)
+                if (level_map.walls[mx + (my * level_map.width)] > 0)
                 {
+                    hit.wallId = (int)level_map.walls[mx + (my * level_map.width)];
                     hit.map_x = mx;
                     hit.map_y = my;
                     hit.hit = true;
