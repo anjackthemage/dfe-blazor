@@ -32,6 +32,7 @@ namespace dfe.Client.Engine.Network
                 {
                     map_hub_conn.SendAsync("getSprite", spr.id);
                 }
+                level_map.initMap();
             });
 
             map_hub_conn.On<byte[]>("receiveImage", (data) =>

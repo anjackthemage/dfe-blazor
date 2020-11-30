@@ -41,18 +41,18 @@
 		"id": 4,
 		"file": "wall_rbw_lines_4.data"
 	}],
-	"entities": [{}],
+	"entities": [],
 	"mobs": [{
 		"type": 1,
 		"sprite_id": 1,
-		"position": {
+		"coord": {
 			"X": 200,
 			"Y": 128
 		}
 	}, {
 		"type": 1,
 		"sprite_id": 1,
-		"position": {
+		"coord": {
 			"X": 46,
 			"Y": 128
 		}

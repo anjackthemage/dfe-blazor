@@ -7,6 +7,7 @@ using System.Text.Json;
 using dfe.Shared.Render;
 using System.Numerics;
 using System.Collections.Generic;
+using dfe.Shared.Entities;
 
 namespace dfe.Shared
 {
@@ -24,7 +25,7 @@ namespace dfe.Shared
         public PixelBuffer pb_data { get; set; }
     }
 
-    public class actors
+    public class actor
     {
         public int type { get; set; }
         public int sprite_id { get; set; }
@@ -43,8 +44,8 @@ namespace dfe.Shared
         public string name { get; set; }
         public sprite[] sprites { get; set; }
         public texture[] textures { get; set; }
-        public actors[] entities { get; set; }
-        public actors[] mobs { get; set; }
+        public Entity[] entities { get; set; }
+        public Mob[] mobs { get; set; }
 
         public Map()
         {
@@ -77,10 +78,38 @@ namespace dfe.Shared
             this.mobs = ref_map.mobs;
         }
 
+        public void initMap()
+        {
+            foreach (Entity ent in this.entities)
+            {
+                ent.sprite = this.textures[ent.sprite_id].pb_data;
+                ent.position = new Vector2(ent.coord.X, ent.coord.Y);
+            }
+
+            foreach (Mob mob in this.mobs)
+            {
+                mob.sprite = this.textures[mob.sprite_id].pb_data;
+                mob.position = new Vector2(mob.coord.X, mob.coord.Y);
+            }
+        }
+
         public void render()
         {
             IRender render = this;
             render.renderMap(this);
+
+            //foreach (Entity ent in entities)
+            //{
+            //    Console.WriteLine("Rendering ENT");
+            //    ent.render();
+            //}
+
+            //foreach (Mob mob in mobs)
+            //{
+            //    Console.WriteLine("Rendering MOB");
+            //    Console.WriteLine("Type: {0} Sprite ID: {1} X: {2} Y: {3}", mob.type, mob.sprite_id, mob.position.X, mob.position.Y);
+            //    mob.render();
+            //}
         }
 
         public void generateMap(int width, int height)
@@ -115,8 +144,11 @@ namespace dfe.Shared
             if (File.Exists(file_path))
             {
                 string json_str = File.ReadAllText(file_path);
+
+                Map temp_map = new Map(JsonSerializer.Deserialize<Map>(json_str));
+                Console.WriteLine("Mobs: {0}", temp_map.mobs.Length);
                 
-                cloneMap(new Map(JsonSerializer.Deserialize<Map>(json_str)));
+                cloneMap(temp_map);
 
                 Console.WriteLine("Loaded Map Name: {0}", this.name.ToString());
 
