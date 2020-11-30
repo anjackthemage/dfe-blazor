@@ -8,6 +8,7 @@ using Microsoft.Extensions.Hosting;
 using System.Linq;
 using dfe.Server.Hubs;
 using dfe.Shared;
+using dfe.Server.Engine;
 
 namespace dfe.Server
 {
@@ -16,6 +17,8 @@ namespace dfe.Server
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
+
+            GameServer game_server = new GameServer();
 
             Map.current = new Map("level_test");
         }
