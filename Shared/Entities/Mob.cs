@@ -22,8 +22,7 @@ namespace dfe.Shared.Entities
         /// </summary>
         public Mob()
         {
-            this.position = new Vector2(0, 0);
-            this.angle = 0.0f;
+
         }
 
         /// <summary>
