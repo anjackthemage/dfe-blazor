@@ -38,7 +38,7 @@ namespace dfe.Server.Hubs
             }
             else
             {
-                Console.WriteLine("File not found: {0}", file_path);
+                Console.WriteLine("Sprite file not found: {0}", file_path);
             }
 
             await Clients.Caller.SendAsync("receiveSprite", sprite_id, sprite_bytes);
@@ -57,7 +57,7 @@ namespace dfe.Server.Hubs
             }
             else
             {
-                Console.WriteLine("File not found: {0}", file_path);
+                Console.WriteLine("Texture file not found: {0}", file_path);
             }
 
             await Clients.Caller.SendAsync("receiveTexture", texture_id, texture_bytes);

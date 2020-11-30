@@ -309,9 +309,14 @@ namespace dfe.Shared.Render
                     texBuffer = f_tex;
                 else if (ray.wallId == 2)
                     texBuffer = s_tex;
-                
-                // frameBuffer.ShadeTexturedWall(x, 1, ray.dis, ray.texOfs, level_map.getWallTexture(ray.wallId).pb_data, fogColor);
-                frameBuffer.ShadeTexturedWall(x, 1, ray.dis, ray.texOfs, texBuffer, fogColor);
+
+                if (level_map.textures[ray.wallId].pb_data != null)
+                {
+                    texBuffer = level_map.textures[ray.wallId].pb_data;
+
+                    // frameBuffer.ShadeTexturedWall(x, 1, ray.dis, ray.texOfs, level_map.getWallTexture(ray.wallId).pb_data, fogColor);
+                    frameBuffer.ShadeTexturedWall(x, 1, ray.dis, ray.texOfs, texBuffer, fogColor);
+                }
             }
         }
         public Ray rayCast(Mob obs, float ang, Map level_map, Ray hit)

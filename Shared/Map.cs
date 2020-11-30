@@ -90,11 +90,6 @@ namespace dfe.Shared
             {
                 mob.sprite = this.sprites[mob.sprite_id].pb_data;
                 mob.position = new Vector2(mob.coord.X, mob.coord.Y);
-
-                foreach(byte bte in mob.sprite.pixels)
-                {
-                    Console.Write("{0}, ", bte);
-                }
             }
         }
 

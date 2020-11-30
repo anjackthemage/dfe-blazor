@@ -52,7 +52,22 @@ namespace dfe.Client.Engine.Network
             map_hub_conn.On<int, byte[]>("receiveTexture", (texture_id, texture_bytes) =>
             {
                 level_map.textures[texture_id].pb_data = new PixelBuffer(64, 64);
-                level_map.textures[texture_id].pb_data.pixels = texture_bytes;
+
+                byte[] resized = new byte[64 * 64 * 4];
+                // Covert to 4 bytes per pixel
+                int src = 0;
+                int dst = 0;
+                for (int i = 0; i < 64 * 64; i++)
+                {
+                    resized[dst] = texture_bytes[src];
+                    resized[dst + 1] = texture_bytes[src + 1];
+                    resized[dst + 2] = texture_bytes[src + 2];
+                    resized[dst + 3] = 255;
+                    src += 3;
+                    dst += 4;
+                }
+
+                level_map.textures[texture_id].pb_data.pixels = resized;
 
                 level_map.initMap();
             });
