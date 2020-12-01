@@ -15,16 +15,22 @@ namespace dfe.Shared.Render
         
         // Bytes per pixel
         public const int BPP = 4;
-        public static readonly Rgba C_BLACK = new Rgba(0, 0, 0);
-        public static readonly Rgba C_WHITE = new Rgba(255, 255, 255);
-        
+        public static readonly Rgba C_BLACK = new Rgba(0x00, 0x00, 0x00);
+        public static readonly Rgba C_GREY = new Rgba(0x80, 0x80, 0x80);
+        public static readonly Rgba C_WHITE = new Rgba(0xFF, 0xFF, 0xFF);
+        public static readonly Rgba C_RED = new Rgba(0xFF, 0x00, 0x00);
+        public static readonly Rgba C_GREEN = new Rgba(0x00, 0xFF, 0x00);
+        public static readonly Rgba C_BLUE = new Rgba(0x00, 0x00, 0xFF);
+
         #endregion
 
         #region Global Controls
 
         public static Rgba clearColor = C_BLACK;
         public static Rgba drawColor = C_WHITE;
-        
+        public static Rgba clippedColor = C_RED;
+        private static ClipRect clipRect = new ClipRect();
+
         #endregion
 
         #region Clear
@@ -255,7 +261,7 @@ namespace dfe.Shared.Render
             }
         }
         /// <summary>
-        /// Draws a rectangle.
+        /// Draw a rectangle.
         /// </summary>
         /// <param name="x">Left edge coordinate of the rectangle</param>
         /// <param name="y">Top edge coordinate of teh rectangle</param>
@@ -328,9 +334,102 @@ namespace dfe.Shared.Render
                 dstB += BPP;
             }
         }
+        /// <summary>
+        /// Draws a bilboard rectangle with depth. Rendering is clipped against a Y buffer.
+        /// </summary>
+        /// <param name="dst">Target PixelBuffer.</param>
+        /// <param name="centerX">X Coordinate of the rectangle's center</param>
+        /// <param name="distance">Distance from the camera to render.</param>
+        /// <param name="width">Width of the rectangle at distance = 1</param>
+        /// <param name="height">Height of the rectangle at distance = 1</param>
+        /// <param name="y_buffer">A ray buffer to do distance clipping against.</param>
+        public static void rectDepth(PixelBuffer dst, int centerX, float distance, int width, int height, Ray[] y_buffer)
+        {
+            width = (int)(width / distance);
+            height = (int)(height / distance);
+            int hw = (int)((width >> 1));
+            int hh = (int)((height >> 1));
+
+            clipRect.x = centerX - hw;
+            clipRect.y = (dst.height >> 1) - hh;
+            clipRect.w = width;
+            clipRect.h = height;
+            rect(dst, clipRect.x, clipRect.y, clipRect.w, clipRect.h, clippedColor);
+
+            clipRect.left = Math.Max(clipRect.x, 0);
+            clipRect.right = Math.Min(clipRect.x + clipRect.w, dst.width - 1);
+            clipRect.top = clipRect.y;
+            clipRect.bot = clipRect.y + clipRect.h;
+            // clip left
+            for (int i = clipRect.left; i < clipRect.right; i++)
+            {
+                if (y_buffer[i].dis <= distance)
+                    clipRect.left = i;
+                else break;
+            }
+            // clip right
+            for (int i = clipRect.left + 1; i < clipRect.right; i++)
+            {
+                if (y_buffer[i].dis <= distance)
+                {
+                    clipRect.right = i;
+                    break;
+                }
+            }
+            rect(dst, clipRect.left, clipRect.top, clipRect.right - clipRect.left, clipRect.bot - clipRect.top, drawColor);
+        }
+        /// <summary>
+        /// Draws a bilboard rectangle with depth. Rendering is clipped against a Y buffer.
+        /// </summary>
+        /// <param name="dst">Target PixelBuffer.</param>
+        /// <param name="centerX">X Coordinate of the rectangle's center</param>
+        /// <param name="distance">Distance from the camera to render.</param>
+        /// <param name="width">Width of the rectangle at distance = 1</param>
+        /// <param name="height">Height of the rectangle at distance = 1</param>
+        /// <param name="y_buffer">A ray buffer to do distance clipping against.</param>
+        /// <param name="color">The color to render the rectangle.</param>
+        public static void rectDepth(PixelBuffer dst, int centerX, float distance, int width, int height, Ray[] y_buffer, Rgba color)
+        {
+            width = (int)(width / distance);
+            height = (int)(height / distance);
+            int hw = (int)((width >> 1));
+            int hh = (int)((height >> 1));
+
+            clipRect.x = centerX - hw;
+            clipRect.y = (dst.height >> 1) - hh;
+            clipRect.w = width;
+            clipRect.h = height;
+            rect(dst, clipRect.x, clipRect.y, clipRect.w, clipRect.h, clippedColor);
+
+            clipRect.left = Math.Max(clipRect.x, 0);
+            clipRect.right = Math.Min(clipRect.x + clipRect.w, dst.width - 1);
+            clipRect.top = clipRect.y;
+            clipRect.bot = clipRect.y + clipRect.h;
+            // clip left
+            for (int i = clipRect.left; i < clipRect.right; i++)
+            {
+                if (y_buffer[i].dis <= distance)
+                    clipRect.left = i;
+                else break;
+            }
+            // clip right
+            for (int i = clipRect.left + 1; i < clipRect.right; i++)
+            {
+                if (y_buffer[i].dis <= distance)
+                {
+                    clipRect.right = i;
+                    break;
+                }
+            }
+            rect(dst, clipRect.left, clipRect.top, clipRect.right - clipRect.left, clipRect.bot - clipRect.top, color);
+        }
 
         #endregion
 
+        #region Walls
+        #endregion
 
+        #region Ceilings / Floors
+        #endregion
     }
 }

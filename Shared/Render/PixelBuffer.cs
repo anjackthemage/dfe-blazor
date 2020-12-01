@@ -175,7 +175,7 @@ namespace dfe.Shared.Render
             pixels[i + 2] = color.b;
             pixels[i + 3] = color.a;
         }
-        [Obsolete("Use Render.point(buffer, x, y, r, g, b) instead.")]
+        [Obsolete("Use Render.point(dst, x, y) instead.")]
         /// <summary>
         /// Sets the color of a single pixel in the buffer.
         /// </summary>
@@ -203,7 +203,7 @@ namespace dfe.Shared.Render
         /// <param name="width">Width in pixels.</param>
         /// <param name="height">Height in pixels.</param>
         /// <param name="color">The desired RGBA color.</param>
-        [Obsolete("Use Render.rect(buffer, x, y, w, h) instead.")]
+        [Obsolete("Use Render.rect(dst, x, y, w, h) instead.")]
         public void DrawRect(int x, int y, int width, int height, color4i color)
         {
             // Find clipping rectangle.
@@ -264,8 +264,6 @@ namespace dfe.Shared.Render
                 dstB += bpp;
             }
         }
-        #endregion
-
         /// <summary>
         /// Draws a bilboard rectangle with depth.
         /// </summary>
@@ -275,6 +273,7 @@ namespace dfe.Shared.Render
         /// <param name="height">Height of the rectangle at distance = 1</param>
         /// <param name="ray_buffer">A ray buffer to do distance clipping against.</param>
         /// <param name="color">The color to render the rectangle.</param>
+        [Obsolete("Use Render.rectDepth(dst, centerX, distance, w, h) instead.")]
         public void DrawRectPerspective(int screenX, float distance, int width, int height, Ray[] ray_buffer, color4i color)
         {
             width = (int)(width / distance);
@@ -316,6 +315,9 @@ namespace dfe.Shared.Render
         /// <param name="column">The pixel column to render to</param>
         /// <param name="distance">The distance of the 'wall' from the camera.</param>
         /// <param name="color">The desired color of the wall.</param>
+
+        #endregion
+
         public void DrawWallColumn(int column, float distance, color4i color)
         {
             int colHeight = height;

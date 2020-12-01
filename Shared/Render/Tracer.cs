@@ -162,6 +162,7 @@ namespace dfe.Shared.Render
             renderCeiling();
             renderWalls(level_map);
             renderSprites();
+            Render.rectDepth(frameBuffer, 80, 2, 128, 64, ray_buffer);
         }
         public void rotObserver(Observer o, float a)
         {
