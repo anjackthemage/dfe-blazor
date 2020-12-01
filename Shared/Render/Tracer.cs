@@ -163,7 +163,6 @@ namespace dfe.Shared.Render
             renderWalls(level_map);
             renderSprites();
         }
-
         public void rotObserver(Observer o, float a)
         {
             o.a += a;

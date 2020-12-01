@@ -20,6 +20,13 @@ namespace dfe.Shared.Render
             b = (byte)((color >> 16) & 0xFF);  // blue
             a = (byte)((color >> 24) & 0xFF); // alpha  
         }
+        public color4i(byte red, byte green, byte blue, byte alpha)
+        {
+            r = red;
+            g = green;
+            b = blue;
+            a = alpha;
+        }
 
         public color4i(byte red, byte green, byte blue)
         {
@@ -92,38 +99,6 @@ namespace dfe.Shared.Render
         }
     }
 
-    /// <summary>
-    /// Clipping rectangle structure.
-    /// Values are stored in screen pixel coordinates.
-    /// </summary>
-    public struct ClipRect
-    {
-        public int x;
-        public int y;
-        public int w;
-        public int h;
-        public int left;
-        public int right;
-        public int top;
-        public int bot;
-        public ClipRect(int x, int y, int w, int h)
-        {
-            this.x = x;
-            this.y = y;
-            this.w = w;
-            this.h = h;
-            left = x;
-            right = x + w;
-            top = y;
-            bot = y + h;
-        }
-
-        public override string ToString()
-        {
-            return "x:" + x + " y:" + y + " w:" + w + " h:" + h + " left:" + left + " right:" + right + " top:" + top + " bot:" + bot;
-        }
-    }
-
     public class PixelBuffer
     {
         // Bytes per pixel
@@ -142,6 +117,8 @@ namespace dfe.Shared.Render
         public readonly int stride;
         // The RGBA pixel buffer, each pixel is 4 bytes in RGBA order.
         public byte[] pixels;
+
+        #region Obsolete Methods
         /// <summary>
         /// Constructor
         /// </summary>
@@ -154,6 +131,7 @@ namespace dfe.Shared.Render
             stride = width * bpp;
             pixels = new byte[width * height * bpp];
         }
+        [Obsolete("Use Render.clear() instead.")]
         /// <summary>
         /// Sets the color of a single pixel in the buffer.
         /// </summary>
@@ -173,6 +151,7 @@ namespace dfe.Shared.Render
                 pixels[i + 3] = 255;
             }
         }
+        [Obsolete("Use Render.clear(buffer, color) instead.")]
         /// <summary>
         /// Clears the buffer to a desired color.
         /// </summary>
@@ -187,6 +166,7 @@ namespace dfe.Shared.Render
                 pixels[i + 3] = color.a;
             }
         }
+        [Obsolete("Use Render.point(buffer, x, y, color) instead.")]
         public void DrawPoint(int x, int y, color4i color)
         {
             int i = (x << 2) + (y * stride) % pixels.Length;
@@ -195,6 +175,7 @@ namespace dfe.Shared.Render
             pixels[i + 2] = color.b;
             pixels[i + 3] = color.a;
         }
+        [Obsolete("Use Render.point(buffer, x, y, r, g, b) instead.")]
         /// <summary>
         /// Sets the color of a single pixel in the buffer.
         /// </summary>
@@ -203,10 +184,10 @@ namespace dfe.Shared.Render
         /// <param name="r">Red intensity (0-255)</param>
         /// <param name="g">Green intensity (0-255)</param>
         /// <param name="b">Blue intensity (0-255)</param>
+        ///         []
         public void DrawPoint(int x, int y, byte r, byte g, byte b)
         {
-            if (x < 0 || x >= width || y < 0 || y >= height)
-                return;
+            if (x < 0 || x >= width || y < 0 || y >= height) return;
 
             int i = (x << 2) + (y * stride) % pixels.Length;
             pixels[i] = r;
@@ -222,6 +203,7 @@ namespace dfe.Shared.Render
         /// <param name="width">Width in pixels.</param>
         /// <param name="height">Height in pixels.</param>
         /// <param name="color">The desired RGBA color.</param>
+        [Obsolete("Use Render.rect(buffer, x, y, w, h) instead.")]
         public void DrawRect(int x, int y, int width, int height, color4i color)
         {
             // Find clipping rectangle.
@@ -261,9 +243,9 @@ namespace dfe.Shared.Render
 
             dstB = dy + (left << 2);
             // Draw rows
-            for(int i = 0; i < clipW; i++)
+            for (int i = 0; i < clipW; i++)
             {
-                if(bot == (y + height))
+                if (bot == (y + height))
                 {
                     pixels[dstA + 0] = color.r;
                     pixels[dstA + 1] = color.g;
@@ -281,8 +263,9 @@ namespace dfe.Shared.Render
                 dstA += bpp;
                 dstB += bpp;
             }
-
         }
+        #endregion
+
         /// <summary>
         /// Draws a bilboard rectangle with depth.
         /// </summary>
