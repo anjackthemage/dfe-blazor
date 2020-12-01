@@ -315,20 +315,19 @@ namespace dfe.Shared.Render
         /// <param name="column">The pixel column to render to</param>
         /// <param name="distance">The distance of the 'wall' from the camera.</param>
         /// <param name="color">The desired color of the wall.</param>
-
-        #endregion
-
+        [Obsolete("Use Render.wallColumn(x, distance, color)")]
         public void DrawWallColumn(int column, float distance, color4i color)
         {
+
             int colHeight = height;
             if (distance != 0)
                 colHeight = (int)(height / distance);
-            if (colHeight > height || distance == 0) 
+            if (colHeight > height || distance == 0)
                 colHeight = height;
             byte c = (byte)colHeight;
             // Find the top of the column
             int y = (column * bpp) + (((height - colHeight) >> 1) * stride);
-            for(int i = 0; i < colHeight; i++)
+            for (int i = 0; i < colHeight; i++)
             {
                 pixels[y] = c;
                 pixels[y + 1] = c;
@@ -337,6 +336,9 @@ namespace dfe.Shared.Render
                 y += stride;
             }
         }
+
+        #endregion
+
         /// <summary>
         /// Draw a wall column using a texture for pixel colors.
         /// </summary>

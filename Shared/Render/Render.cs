@@ -427,6 +427,71 @@ namespace dfe.Shared.Render
         #endregion
 
         #region Walls
+        /// <summary>
+        /// Draws a flat shaded wall column based on distance.
+        /// </summary>
+        /// <param name="dst">Target PixelBuffer.</param>
+        /// <param name="x">X coordinate to render the wall on.</param>
+        /// <param name="distance">Distance of the wall from the camera.</param>
+        /// <param name="color">Color to render the wall.</param>
+        public static void wallColumn(PixelBuffer dst, int x, float distance)
+        {
+            int colHeight = dst.height;
+            if (distance != 0)
+                colHeight = (int)(dst.height / distance);
+
+            int fp8_blend = (colHeight * drawColor.a) / dst.height;
+            byte r = (byte)Math.Min(0xFF, ((drawColor.r * fp8_blend) >> 8));
+            byte g = (byte)Math.Min(0xFF, ((drawColor.g * fp8_blend) >> 8));
+            byte b = (byte)Math.Min(0xFF, ((drawColor.b * fp8_blend) >> 8));
+
+            if (colHeight > dst.height || distance == 0)
+                colHeight = dst.height;
+
+            // Find the top of the column
+            int y = (x * BPP) + (((dst.height - colHeight) >> 1) * dst.stride);
+            for (int i = 0; i < colHeight; i++)
+            {
+                dst.pixels[y] = r;
+                dst.pixels[y + 1] = g;
+                dst.pixels[y + 2] = b;
+                dst.pixels[y + 3] = 255;
+                y += dst.stride;
+            }
+        }
+        /// <summary>
+        /// Draws a flat shaded wall column based on distance.
+        /// </summary>
+        /// <param name="dst">Target PixelBuffer.</param>
+        /// <param name="x">X coordinate to render the wall on.</param>
+        /// <param name="distance">Distance of the wall from the camera.</param>
+        /// <param name="color">Color to render the wall. Alpha channel is used for distance intensity.</param>
+        public static void wallColumn(PixelBuffer dst, int x, float distance, Rgba color)
+        {
+            int colHeight = dst.height;
+            if (distance != 0)
+                colHeight = (int)(dst.height / distance);
+
+            int fp8_blend = (colHeight * color.a) / dst.height;
+            byte r = (byte)Math.Min(0xFF, ((color.r * fp8_blend) >> 8));
+            byte g = (byte)Math.Min(0xFF, ((color.g * fp8_blend) >> 8));
+            byte b = (byte)Math.Min(0xFF, ((color.b * fp8_blend) >> 8));
+
+            if (colHeight > dst.height || distance == 0)
+                colHeight = dst.height;
+
+            // Find the top of the column
+            int y = (x * BPP) + (((dst.height - colHeight) >> 1) * dst.stride);
+            for (int i = 0; i < colHeight; i++)
+            {
+                dst.pixels[y] = r;
+                dst.pixels[y + 1] = g;
+                dst.pixels[y + 2] = b;
+                dst.pixels[y + 3] = 255;
+                y += dst.stride;
+            }
+        }
+
         #endregion
 
         #region Ceilings / Floors
