@@ -162,8 +162,8 @@ namespace dfe.Shared.Render
             renderCeiling();
             renderWalls(level_map);
             renderSprites();
+            Render.rectDepth(frameBuffer, 80, 2, 128, 64, ray_buffer);
         }
-
         public void rotObserver(Observer o, float a)
         {
             o.a += a;
@@ -315,7 +315,8 @@ namespace dfe.Shared.Render
                     texBuffer = level_map.textures[ray.wallId].pb_data;
 
                     // frameBuffer.ShadeTexturedWall(x, 1, ray.dis, ray.texOfs, level_map.getWallTexture(ray.wallId).pb_data, fogColor);
-                    frameBuffer.ShadeTexturedWall(x, 1, ray.dis, ray.texOfs, texBuffer, fogColor);
+                    // frameBuffer.ShadeTexturedWall(x, 1, ray.dis, ray.texOfs, texBuffer, fogColor);
+                    Render.wallColumn(frameBuffer, x, ray_buffer[x].dis);
                 }
             }
         }
