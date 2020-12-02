@@ -97,7 +97,7 @@ namespace dfe.Shared.Render
         // Controller!
         public input_ctrl input = new input_ctrl();
         // Observer Mob - This should be the player.
-        public Mob self = new Mob(128, 128, 0);
+        public Player self = new Player(128, 128, 0);
         // Map Object
         public Map lvl_map = new Map(16, 16);
         // Ray Data Array

@@ -24,6 +24,9 @@
 	}, {
 		"id": 1,
 		"file": "Jonesy.data"
+	}, {
+		"id": 2,
+		"file": "Nonesy.data"
 	}],
 	"textures": [{
 		"id": 0,
@@ -44,14 +47,14 @@
 	"entities": [],
 	"mobs": [{
 		"type": 1,
-		"sprite_id": 1,
+		"sprite_id": 2,
 		"coord": {
 			"X": 200,
 			"Y": 128
 		}
 	}, {
 		"type": 1,
-		"sprite_id": 1,
+		"sprite_id": 2,
 		"coord": {
 			"X": 46,
 			"Y": 128

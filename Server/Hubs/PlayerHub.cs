@@ -12,11 +12,11 @@ namespace dfe.Server.Hubs
 
         public static Dictionary<String, Player> connected_players = new Dictionary<string, Player>();
 
-        public async Task registerPlayerConnection(string player_name)
+        public async Task registerPlayerConnection(string player_name, Player player_ref)
         {
             Console.WriteLine("Registering client...");
             //Context.ConnectionId
-            Player temp_player = new Player(0.0f, 0.0f, 0.0f);
+            Player temp_player = player_ref;
 
             temp_player.player_name = player_name;
             temp_player.guid = Guid.NewGuid();

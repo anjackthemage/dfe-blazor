@@ -135,6 +135,7 @@
 
         player_hub_conn.On<Player[]>("updateConnectedPlayers", (player_connections) =>
         {
+            Console.WriteLine("Updating connected players: {0}", player_connections.Length);
             foreach (Player plyr in player_connections)
             {
                 if (plyr.guid != local_player_guid)
@@ -154,6 +155,7 @@
                         temp_player.guid = plyr.guid;
                         connected_players.Add(temp_player.guid, temp_player);
                     }
+                    Console.WriteLine("Player {0} X: {1} Y: {2}", plyr.guid, plyr.coord.X, plyr.coord.Y);
                 }
             }
         });
@@ -173,7 +175,7 @@
             }
         });
 
-        await player_hub_conn.SendAsync("registerPlayerConnection", "TestPlayer");
+        await player_hub_conn.SendAsync("registerPlayerConnection", "TestPlayer", ray_tracer.self);
 
         await base.OnInitializedAsync();
     }
