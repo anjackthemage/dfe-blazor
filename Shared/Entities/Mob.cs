@@ -76,12 +76,16 @@ namespace dfe.Shared.Entities
         {
             position.X += (heading.X * distance);
             position.Y += (heading.Y * distance);
+            coord.X = position.X;
+            coord.Y = position.Y;
         }
 
         public void strafe(float distance)
         {
             position.X += (-heading.Y * distance);
             position.Y += (heading.X * distance);
+            coord.X = position.X;
+            coord.Y = position.Y;
         }
         public void updatePosition()
         {

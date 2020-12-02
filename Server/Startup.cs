@@ -68,6 +68,7 @@ namespace dfe.Server
             {
                 endpoints.MapRazorPages();
                 endpoints.MapControllers();
+                endpoints.MapHub<PlayerHub>("/playerhub");
                 endpoints.MapHub<ChatHub>("/chathub");
                 endpoints.MapHub<MapHub>("/maphub");
                 endpoints.MapFallbackToFile("index.html");

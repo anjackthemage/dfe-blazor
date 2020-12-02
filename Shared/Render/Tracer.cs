@@ -452,20 +452,20 @@ namespace dfe.Shared.Render
 
             if (input.u == true)
             {
-                self.walk(1);
+                self.walk(0.5f);
             }
             else if (input.d == true)
             {
-                self.walk(-1);
+                self.walk(-0.5f);
             }
 
             if (input.l == true)
             {
-                self.strafe(-1);
+                self.strafe(-0.5f);
             }
             else if (input.r == true)
             {
-                self.strafe(1);
+                self.strafe(0.5f);
             }
 
             if (input.mouseDelta != 0)

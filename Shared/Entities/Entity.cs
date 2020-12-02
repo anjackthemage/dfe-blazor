@@ -17,10 +17,16 @@ namespace dfe.Shared.Entities
         [JsonInclude]
         public float Y;
     }
+
     public class Entity : IRender
     {
+        public int id;
+
         [JsonInclude]
-        public Coord coord;
+        public Guid guid;
+
+        [JsonInclude]
+        public Coord coord = new Coord();
 
         public Vector2 position;
         
