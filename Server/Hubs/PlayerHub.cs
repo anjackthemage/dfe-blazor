@@ -30,8 +30,14 @@ namespace dfe.Server.Hubs
                 await Clients.Client(Context.ConnectionId).SendAsync("receiveRegistrationResponse", true, temp_player.guid);
                 Console.WriteLine("Connected clients: {0}", connected_players.Count);
 
-                await Clients.All.SendAsync("updateConnectedPlayers", connected_players.Values);
+                updateConnectedPlayers();
             }
+        }
+
+        public async Task updateConnectedPlayers()
+        {
+
+            await Clients.All.SendAsync("updateConnectedPlayers", connected_players.Values);
         }
 
         public async Task deregisterPlayerConnection()
