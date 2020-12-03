@@ -22,7 +22,7 @@
                 @onmousemove="handleMouse">
         </canvas>
     </div>
-    <div hidden="@game_started">
+    <div hidden="@b_is_game_started">
         <div class="centered" style="width: 100%; height: 100%; background-color: gray; opacity: 0.5;">
         </div>
         <div class="centered">
@@ -66,32 +66,31 @@
 
 @code {
 
-    // TODO: Need to store a cookie on client machine to save options state (mute, etc,)
+        // TODO: Need to store a cookie on client machine to save options state (mute, etc,)
 
-    //GameClient game_client = new GameClient();
+        //GameClient game_client = new GameClient();
 
     protected ElementReference render_canvas;
 
     private bool b_is_audio_muted = true;
 
-    private Guid local_player_guid;
 
-    private Tracer ray_tracer;
-    private ChatClient chat_client;
-    private MapClient map_client;
-
-    private Dictionary<Guid, Player> connected_players = new Dictionary<Guid, Player>();
 
     // network
     private HubConnection chat_hub_conn;
     private HubConnection map_hub_conn;
     private HubConnection player_hub_conn;
 
+    private Tracer ray_tracer;
+    private ChatClient chat_client;
+    private MapClient map_client;
+    private PlayerClient player_client;
+
     private List<string> messages = new List<string>();
     private string user_input;
     private string msg_input;
 
-    private bool game_started = false;
+    private bool b_is_game_started = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -99,78 +98,22 @@
 
 
         player_hub_conn = new HubConnectionBuilder().WithUrl(NavigationManager.ToAbsoluteUri("/playerhub")).Build();
-        player_hub_conn.StartAsync();
 
         map_hub_conn = new HubConnectionBuilder().WithUrl(NavigationManager.ToAbsoluteUri("/maphub")).Build();
 
         chat_hub_conn = new HubConnectionBuilder().WithUrl(NavigationManager.ToAbsoluteUri("/chathub")).Build();
 
-        // TODO: Move player hub connection code to separate class
-        // TODO: Differentiate between local and non-local players
-        player_hub_conn.On<bool, Guid>("receiveRegistrationResponse", (b_is_registered, player_guid) =>
-        {
-            local_player_guid = player_guid;
-            if (b_is_registered)
-            {
+        // TODO: don't start gameloop until player registration is complete
+        // TODO: also, we should probably keep map and chat hidden until we successfully register with server
 
-                // TODO: instantiate map and chat clients earlier but don't start gameloop until registration is complete
-                // TODO: also, we should probably keep map and chat hidden until we successfully register with server
+        player_client = new PlayerClient(player_hub_conn);
 
-                map_client = new MapClient(map_hub_conn);
-                map_client.ray_tracer = ray_tracer;
+        map_client = new MapClient(map_hub_conn);
+        map_client.ray_tracer = ray_tracer;
+        map_client.loadMapFromServer();
 
-                map_client.loadMapFromServer();
-
-                chat_client = new ChatClient(chat_hub_conn);
-                chat_client.onChatUpdated += refreshMessages;
-
-            }
-            else
-            {
-                Console.WriteLine("Client registration failed.");
-            }
-
-
-        });
-
-        player_hub_conn.On<Player[]>("updateConnectedPlayers", (player_connections) =>
-        {
-            foreach (Player plyr in player_connections)
-            {
-                if (plyr.guid != local_player_guid)
-                {
-                    if (connected_players.Count > 0 && connected_players.ContainsKey(plyr.guid))
-                    {
-                        connected_players[plyr.guid].coord = plyr.coord;
-                        connected_players[plyr.guid].position.X = plyr.coord.X;
-                        connected_players[plyr.guid].position.Y = plyr.coord.Y;
-                        connected_players[plyr.guid].sprite = map_client.level_map.sprites[1].pb_data;
-                    }
-                    else
-                    {
-                        Player temp_player = new Player(plyr.coord.X, plyr.coord.Y, 0.0f);
-                        temp_player.sprite = map_client.level_map.sprites[1].pb_data;
-                        temp_player.guid = plyr.guid;
-                        connected_players.Add(temp_player.guid, temp_player);
-                    }
-                }
-            }
-        });
-
-        player_hub_conn.On<Dictionary<Guid, Coord>>("updatePlayerPositions", (player_positions) =>
-        {
-            foreach (KeyValuePair<Guid, Coord> player_conn in player_positions)
-            {
-                Guid plyr_id = player_conn.Key;
-                Coord position = player_conn.Value;
-                if (connected_players.ContainsKey(plyr_id))
-                {
-                    connected_players[plyr_id].coord = position;
-                    connected_players[plyr_id].position.X = position.X;
-                    connected_players[plyr_id].position.Y = position.Y;
-                }
-            }
-        });
+        chat_client = new ChatClient(chat_hub_conn);
+        chat_client.onChatUpdated += refreshMessages;
 
         await player_hub_conn.SendAsync("registerPlayerConnection", "TestPlayer", ray_tracer.self);
 
@@ -194,7 +137,7 @@
 
     private async void showGame()
     {
-        this.game_started = true;
+        this.b_is_game_started = true;
         StateHasChanged();
 
         await JsRuntime.InvokeVoidAsync("playAudio", "/audio/bgm_test.mp3");
@@ -215,24 +158,29 @@
     [JSInvokable]
     public async ValueTask update(double time_stamp)
     {
-        ray_tracer.updateObserver();
-        player_hub_conn.SendAsync("updateConnectedPlayers");
-        player_hub_conn.SendAsync("updatePlayerPosition", ray_tracer.self.coord);
-        map_client.level_map.render();
-
-        foreach(KeyValuePair<Guid, Player> player_conn in connected_players)
+        if (PlayerClient.b_is_player_registered)
         {
-            try
-            {
-                player_conn.Value.render();
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("Exception: {0}", e.ToString());
-            }
-        }
+            ray_tracer.updateObserver();
 
-        presentScreen(JsRuntime, ray_tracer.frameBuffer);
+            // TODO: Move these calls to PlayerClient, don't call updateConnectedPlayers every frame.
+            player_hub_conn.SendAsync("updateConnectedPlayers");
+            player_hub_conn.SendAsync("updatePlayerPosition", ray_tracer.self.coord);
+            map_client.level_map.render();
+
+            foreach (KeyValuePair<Guid, Player> player_conn in player_client.connected_players)
+            {
+                try
+                {
+                    player_conn.Value.render();
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Exception: {0}", e.ToString());
+                }
+            }
+
+            presentScreen(JsRuntime, ray_tracer.frameBuffer);
+        }
     }
 
     [JSInvokable]

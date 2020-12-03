@@ -11,6 +11,8 @@ namespace dfe.Client.Engine.Network
 {
     public class MapClient
     {
+        public static MapClient map_client;
+
         public Tracer ray_tracer;
         public HubConnection map_hub_conn;
 
@@ -73,6 +75,8 @@ namespace dfe.Client.Engine.Network
             });
 
             map_hub_conn.StartAsync();
+
+            map_client = this;
 
         }
         
