@@ -44,11 +44,6 @@ namespace dfe.Server
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            app.UseCors((builder) =>
-            {
-                builder.WithOrigins("https://salmon-rock-0c277260f.azurestaticapps.net").AllowAnyHeader().AllowAnyMethod().AllowCredentials();
-            });
-
             app.UseResponseCompression();
 
             if (env.IsDevelopment())
