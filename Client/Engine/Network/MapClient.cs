@@ -13,7 +13,9 @@ namespace dfe.Client.Engine.Network
     {
         public static MapClient map_client;
 
+        // REFACTOR: Duplicate instance of ray tracer ?
         public Tracer ray_tracer;
+
         public HubConnection map_hub_conn;
 
         public Map level_map;

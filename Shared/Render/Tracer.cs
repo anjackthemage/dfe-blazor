@@ -78,6 +78,10 @@ namespace dfe.Shared.Render
     {
         // The framebuffer to be displayed to the user.
         public PixelBuffer frameBuffer;
+        // Ray Data Array
+        public Ray[] ray_buffer;
+
+        #region Refactor These Out
         // Test texture
         public PixelBuffer tex;
         public PixelBuffer s_tex;
@@ -98,8 +102,6 @@ namespace dfe.Shared.Render
         public Player self = new Player(128, 128, 0);
         // Map Object
         public Map lvl_map = new Map(16, 16);
-        // Ray Data Array
-        public Ray[] ray_buffer;
         // Field of View
         public float fov;
 
@@ -108,6 +110,8 @@ namespace dfe.Shared.Render
         // Color gradient for fun :)
         public string[] colors;
         public Map big_map;
+        #endregion
+
         public Tracer()
         {
             IRender.ray_tracer = this;
@@ -430,7 +434,6 @@ namespace dfe.Shared.Render
         //    IJSUnmarshalledRuntime umjs = (IJSUnmarshalledRuntime)js;
         //    object result = umjs.InvokeUnmarshalled<byte[], int, int, object>("blitScreen", frameBuffer.pixels, frameBuffer.width, frameBuffer.height);
         //}
-
         public void updateObserver()
         {
 
