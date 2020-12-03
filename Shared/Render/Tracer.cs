@@ -87,8 +87,6 @@ namespace dfe.Shared.Render
         public int view_cols = 320;
         // Number of Viewport rows
         public int view_rows = 240;
-        // Fog color of the current render
-        public fog4i fogColor = new fog4i(new color4i(0xFFFFFFFF), 0.0f);
         // Rate of heading change during turns.
         public const float turnRate = 0.05f;
         // Grid size in units.
@@ -117,19 +115,19 @@ namespace dfe.Shared.Render
             frameBuffer = new PixelBuffer(view_cols, view_rows);
             tex = new PixelBuffer(16, 16);
             s_tex = new PixelBuffer(16, 16);
-            tex.Clear(new color4i(0, 64, 128));
-            s_tex.Clear(new color4i(0, 64, 128));
+            Render.clear(tex, new Rgba(0, 0, 0));
+            Render.clear(s_tex, new Rgba(0, 64, 128));
             for (int y = 0; y < 16; y++)
                 for (int x = 0; x < 16; x++)
                 {
                     byte b = (byte)(x * 16);
                     byte c = (byte)(y * 16);
-                    tex.DrawPoint(x, y, new color4i(0, b, c));
+                    Render.point(tex, x, y, new Rgba(0, b, c));
                 }
 
-            tex.DrawPoint(0, 0, new color4i(255, 0, 0));
-            tex.DrawPoint(2, 0, new color4i(255, 128, 0));
-            tex.DrawPoint(3, 0, new color4i(255, 0, 0));
+            Render.point(tex, 0, 0, new Rgba(255, 0, 0));
+            Render.point(tex, 2, 0, new Rgba(255, 128, 0));
+            Render.point(tex, 3, 0, new Rgba(255, 0, 0));
 
             // Floor test texture
             f_tex = new PixelBuffer(64, 64);
@@ -137,7 +135,7 @@ namespace dfe.Shared.Render
             {
                 for(int x =0; x < 64; x++)
                 {
-                    f_tex.DrawPoint(x, y, new color4i((byte)(x << 2), 0, (byte)(y << 2)));
+                    Render.point(f_tex, x, y, new Rgba((byte)(x << 2), 0, (byte)(y << 2)));
                 }
             }
             // Ray buffer used for storing ray cast results.
@@ -207,33 +205,23 @@ namespace dfe.Shared.Render
                 Ray rightAngles = ray_buffer[ray_buffer.Length - 1];
                 for (int screenY = frameBuffer.height / 2; screenY < frameBuffer.height; screenY++)
                 {
-                    frameBuffer.TexturedRow(screenY, 1, obsX, obsY, leftAngles, rightAngles, tex
-                        
-                        );
+                    Render.floor(frameBuffer, screenY, 1, obsX, obsY, leftAngles, rightAngles, f_tex);
+
                 }
             } catch (Exception e)
             {
                 Console.Write(e.Message);
             }
-            /*
-            color4i floorColor = new color4i(0xFF808080);
-            float dchange = 1 / 15f;
-            float distance = (frameBuffer.height / 2) * dchange;
-            for (int y = frameBuffer.height / 2; y < frameBuffer.height; y++)
-            {
-                frameBuffer.ShadeRow(y, distance, floorColor, fogColor);
-                distance -= dchange;
-            }*/
             
         }
         public void renderCeiling()
         {
-            color4i ceilColor = new color4i(0xFF602000);
+            Rgba ceilColor = new Rgba(0x60, 0x20, 0x00);
             float dchange = 1 / 15f;
             float distance = (frameBuffer.height / 2) * dchange;
             for (int y = frameBuffer.height / 2; y >= 0; y--)
             {
-                frameBuffer.ShadeRow(y, distance, ceilColor, fogColor);
+                Render.floor(frameBuffer, y, distance, ceilColor, ceilColor);
                 distance -= dchange;
             }
         }
@@ -254,8 +242,7 @@ namespace dfe.Shared.Render
             float viewAdjacent = (float)(frameBuffer.width / 2) / (float)Math.Tan(fov / 2);
             int screenX = (int)((sy / sx) * viewAdjacent);
 
-            frameBuffer.DrawPoint(screenX + 160, 16, 0, 255, 255);
-            frameBuffer.DrawSpritePerspective((int)screenX + (frameBuffer.width / 2), sx, ray_buffer, ent_to_render.sprite);
+            Render.sprite(frameBuffer, (int)screenX + (frameBuffer.width / 2), sx, ray_buffer, ent_to_render.sprite);
             
         }
 
@@ -288,8 +275,7 @@ namespace dfe.Shared.Render
 
             //float screenX = (float)((sy * (frameBuffer.width >> 1)) / (Math.Tan(fov / 2)));
             //int screenX = (int)((Math.Tan(fov / 2) * sy) * (frameBuffer.width / 2));
-            frameBuffer.DrawPoint(screenX + 160, 16, 0, 255, 255);
-            frameBuffer.DrawSpritePerspective((int)screenX + (frameBuffer.width / 2), 8, sx, ray_buffer, tex);
+            Render.sprite(frameBuffer, (int)screenX + (frameBuffer.width / 2), 8, sx, ray_buffer, tex);
         }
 
         /// <summary>
@@ -313,10 +299,7 @@ namespace dfe.Shared.Render
                 if (level_map.textures[ray.wallId].pb_data != null)
                 {
                     texBuffer = level_map.textures[ray.wallId].pb_data;
-
-                    // frameBuffer.ShadeTexturedWall(x, 1, ray.dis, ray.texOfs, level_map.getWallTexture(ray.wallId).pb_data, fogColor);
-                    // frameBuffer.ShadeTexturedWall(x, 1, ray.dis, ray.texOfs, texBuffer, fogColor);
-                    Render.wallColumn(frameBuffer, x, ray_buffer[x].dis);
+                    Render.wallColumn(frameBuffer, x, 1, ray_buffer[x].dis, ray_buffer[x].texOfs, texBuffer, new Rgba(0x0, 0x80,0xFF, 0x08));
                 }
             }
         }

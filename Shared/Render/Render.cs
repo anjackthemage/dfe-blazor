@@ -427,6 +427,7 @@ namespace dfe.Shared.Render
         #endregion
 
         #region Walls
+
         /// <summary>
         /// Draws a flat shaded wall column based on distance.
         /// </summary>
@@ -492,9 +493,363 @@ namespace dfe.Shared.Render
             }
         }
 
+        /// <summary>
+        /// Draw a wall column using a texture for pixel colors.
+        /// </summary>
+        /// <param name="dst">Target PixelBuffer.</param>
+        /// <param name="x">X coordinate to render the wall on.</param>
+        /// <param name="z">View height (but does nothing at the moment) </param>
+        /// <param name="distance">Distance of the wall from the camera.</param>
+        /// <param name="textureOffset">Offset of the source texture to render from</param>
+        /// <param name="src">Source texture to render from</param>
+        public static void wallColumn(PixelBuffer dst, int x, float z, float distance, float textureOffset, PixelBuffer src)
+        {
+            // Calculate initial source texture position.
+            int fp_Src = (int)((float)src.height * textureOffset);
+            fp_Src = fp_Src * src.width;
+            fp_Src = fp_Src << 8;
+
+            // Calculate the height of the column render.
+            int colHeight = dst.height;
+            if (distance != 0) colHeight = (int)(dst.height / distance);
+
+            // Calculate view offset
+            int viewOfs = (int)(colHeight * (z - 1));
+
+            // Calculate base step ratio for source texture read.
+            int fpSrcStep = (src.width << 8) / colHeight;
+
+            // Handle columns too tall for the screen.
+            if (colHeight > dst.height || distance == 0)
+            {
+                // Adjust the source texture data offset.
+                fp_Src += fpSrcStep * ((colHeight - dst.height) >> 1);
+                // Clip the column height to screen height.
+                colHeight = dst.height;
+            }
+            // Calculate the destination data offset for the write.
+            int dstIdx = (x * BPP) + ((((dst.height + viewOfs) - colHeight) >> 1) * dst.stride);
+            int srcIdx;
+
+            // Draw the column.
+            for (int i = 0; i < colHeight; i++)
+            {
+                srcIdx = (fp_Src >> 8) << 2;
+                dst.pixels[dstIdx] = (byte)(src.pixels[srcIdx]);
+                dst.pixels[dstIdx + 1] = (byte)(src.pixels[srcIdx + 1]);
+                dst.pixels[dstIdx + 2] = (byte)(src.pixels[srcIdx + 2]);
+                dst.pixels[dstIdx + 3] = (byte)(src.pixels[srcIdx + 3]);
+                fp_Src += fpSrcStep;
+                dstIdx += dst.stride;
+            }
+        }
+
+        /// <summary>
+        /// Draw a wall column using a texture for pixel colors and use fog calculations.
+        /// </summary>
+        /// <param name="dst">Target PixelBuffer</param>
+        /// <param name="x">X coordinate to render the wall on.</param>
+        /// <param name="z">View height (but does nothing at the moment) </param>
+        /// <param name="distance">Distance of the wall from the camera</param>
+        /// <param name="textureOffset">Offset of the source texture to render from</param>
+        /// <param name="src">Source texture to render from</param>
+        public static void wallColumn(PixelBuffer dst, int x, float z, float distance, float textureOffset, PixelBuffer src, Rgba fogColor)
+        {
+            // Calculate initial source texture position.
+            int fp_Src = (int)(src.height * textureOffset);
+            fp_Src = fp_Src * src.width;
+            fp_Src = fp_Src << 8;
+
+            // Calculate the height of the column render.
+            int colHeight = dst.height;
+            if (distance != 0) colHeight = (int)(dst.height / distance);
+
+            // Calculate view offset
+            int viewOfs = (int)(colHeight * (z - 1));
+
+            // Calculate base step ratio for source texture read.
+            int fp_srcStep = (src.width << 8) / colHeight;
+
+            // Handle columns too tall for the screen.
+            if (colHeight > dst.height || distance == 0)
+            {
+                // Adjust the source texture data offset.
+                fp_Src += fp_srcStep * ((colHeight - dst.height) >> 1);
+                // Clip the column height to screen height.
+                colHeight = dst.height;
+            }
+            // Calculate the destination data offset for the write.
+            int dstIdx = (x * BPP) + ((((dst.height + viewOfs) - colHeight) >> 1) * dst.stride);
+
+            // Calcualte shading values
+            // Fixed point rgba maths
+            int fp_r;
+            int fp_g;
+            int fp_b;
+            int fp_fogCol = (int)(distance * 16f);
+            fp_fogCol += fogColor.a;
+            if (fp_fogCol > 0x0100) fp_fogCol = 0x0100;
+
+            //Console.WriteLine(fp_fogCol.ToString("X8"));
+            int fog_r = fp_fogCol * (fogColor.r);
+            int fog_g = fp_fogCol * (fogColor.g);
+            int fog_b = fp_fogCol * (fogColor.b);
+
+            int fp_srcCol = 0x0100 - fp_fogCol;
+
+            int srcIdx;
+
+            if (fp_srcStep >= 0x10000)
+            {
+                // Draw the column.
+                for (int i = 0; i < colHeight; i++)
+                {
+
+                    srcIdx = (fp_Src >> 8) << 2;
+                    if (dstIdx < 0 || dstIdx >= dst.height)
+                        break;
+
+                    fp_r = (src.pixels[srcIdx] * fp_srcCol) + fog_r;
+                    fp_g = (src.pixels[srcIdx + 1] * fp_srcCol) + fog_g;
+                    fp_b = (src.pixels[srcIdx + 2] * fp_srcCol) + fog_b;
+
+                    dst.pixels[dstIdx] = (byte)(fp_r >> 8);
+                    dst.pixels[dstIdx + 1] = (byte)(fp_g >> 8);
+                    dst.pixels[dstIdx + 2] = (byte)(fp_b >> 8);
+                    dst.pixels[dstIdx + 3] = 255;
+                    fp_Src += fp_srcStep;
+                    dstIdx += dst.stride;
+                }
+            }
+            else
+            {
+                // Compressed Column Drawing
+                int fp_nextSrc;
+                byte r, g, b;
+                // Draw the column.
+                for (int i = 0; i < colHeight;)
+                {
+                    fp_nextSrc = (fp_Src + 0x100) & 0xFFFFF00;
+                    srcIdx = (fp_Src >> 8) << 2;
+                    fp_r = ((src.pixels[srcIdx] * fp_srcCol) + fog_r) >> 8;
+                    fp_g = ((src.pixels[srcIdx + 1] * fp_srcCol) + fog_g) >> 8;
+                    fp_b = ((src.pixels[srcIdx + 2] * fp_srcCol) + fog_b) >> 8;
+                    r = (byte)fp_r;
+                    g = (byte)fp_g;
+                    b = (byte)fp_b;
+                    while (fp_Src < fp_nextSrc && i < colHeight)
+                    {
+                        // HACK: Nearsided renderer should really not have to do this.
+                        if (dstIdx >= 0 && dstIdx < dst.pixels.Length)
+                        {
+
+                            dst.pixels[dstIdx] = r;
+                            dst.pixels[dstIdx + 1] = g;
+                            dst.pixels[dstIdx + 2] = b;
+                            dst.pixels[dstIdx + 3] = 255;
+                        }
+                        fp_Src += fp_srcStep;
+                        dstIdx += dst.stride;
+                        i++;
+                    }
+                }
+            }
+        }
+
         #endregion
 
         #region Ceilings / Floors
+        /// <summary>
+        /// Draw a solid row of pixel colors across the screen at Y
+        /// </summary>
+        /// <param name="dst">Target PixelBuffer</param>
+        /// <param name="y">Y coordinate to render the row at</param>
+        /// <param name="color">Color of the pixels for this row</param>
+        public static void floor(PixelBuffer dst, int y, Rgba color)
+        {
+            int dstIdx = y * dst.stride;
+            for (int i = 0; i < dst.width; i++)
+            {
+                dst.pixels[dstIdx] = color.r;
+                dst.pixels[dstIdx + 1] = color.g;
+                dst.pixels[dstIdx + 2] = color.b;
+                dst.pixels[dstIdx + 3] = color.a;
+                dstIdx += BPP;
+            }
+        }
+        /// <summary>
+        /// Draw a row of pixels of a given color and shade them by a fog color
+        /// </summary>
+        /// <param name="dst">Target PixelBuffer</param>
+        /// <param name="y">Y coordinate to render the row at</param>
+        /// <param name="distance">Distance of this row from the camera, used in fog calculations.</param>
+        /// <param name="color">Color of the pixels for this row</param>
+        /// <param name="fogColor">Color of the fog</param>
+        public static void floor(PixelBuffer dst,  int y, float distance, Rgba color, Rgba fogColor)
+        {
+            int dstIdx = y * dst.stride;
+
+            // Calcualte shading values
+            // Fixed point rgba maths
+            int fp_fogCol = (int)(distance * 16f);
+            fp_fogCol += fogColor.a;
+            if (fp_fogCol > 0x0100) fp_fogCol = 0x0100;
+
+            //Console.WriteLine(fp_fogCol.ToString("X8"));
+            int fog_r = fp_fogCol * (fogColor.r);
+            int fog_g = fp_fogCol * (fogColor.g);
+            int fog_b = fp_fogCol * (fogColor.b);
+
+            int fp_srcCol = 0x0100 - fp_fogCol;
+
+            byte r = (byte)(((color.r * fp_srcCol) + fog_r) >> 8);
+            byte g = (byte)(((color.g * fp_srcCol) + fog_g) >> 8);
+            byte b = (byte)(((color.b * fp_srcCol) + fog_b) >> 8);
+
+            for (int i = 0; i < dst.width; i++)
+            {
+               dst.pixels[dstIdx] = r;
+               dst.pixels[dstIdx + 1] = g;
+               dst.pixels[dstIdx + 2] = b;
+               dst.pixels[dstIdx + 3] = color.a;
+                dstIdx += BPP;
+            }
+        }
+        /// <summary>
+        /// Draw a row of pixels using a perspective transformed texture map.
+        /// </summary>
+        /// <param name="dst">Target PixelBuffer</param>
+        /// <param name="y">Y coordinate to render this row at</param>
+        /// <param name="z">Height of the viewer from the floor</param>
+        /// <param name="location_x">X coordinate of viewer, in map units.</param>
+        /// <param name="location_y">Y coordinate of viewer, in map units.</param>
+        /// <param name="leftAngles">The Ray that describes the far left pixel column angle.</param>
+        /// <param name="rightAngles">The Ray that describes the far right pixel column angle.</param>
+        /// <param name="src">Source texture to render from.</param>
+        public static void floor(PixelBuffer dst, int y, float z, float location_x, float location_y, Ray leftAngles, Ray rightAngles, PixelBuffer src)
+        {
+
+            int row = (dst.height / 2) - y;
+            z = 0.5f * dst.height;
+            float rowDist = z / row;
+
+            float floorStepX = rowDist * (rightAngles.ax - leftAngles.ax) / dst.width;
+            float floorStepY = rowDist * (rightAngles.ay - leftAngles.ay) / dst.width;
+
+            float floorX = location_x + rowDist * leftAngles.ax;
+            float floorY = location_y + rowDist * leftAngles.ay;
+
+            int u, v;
+            int srcIdx;
+            int dstIdx = y * dst.stride;
+
+            for (int x = 0; x < dst.width; x++)
+            {
+                u = (int)(src.width * (floorX)) & (src.width - 1);
+                v = (int)(src.height * (floorY)) & (src.height - 1);
+                floorX += floorStepX;
+                floorY += floorStepY;
+                srcIdx = (u << 2) + (v * src.stride);
+                dst.pixels[dstIdx] = src.pixels[srcIdx];
+                dst.pixels[dstIdx + 1] = src.pixels[srcIdx + 1];
+                dst.pixels[dstIdx + 2] = src.pixels[srcIdx + 2];
+                dst.pixels[dstIdx + 3] = 255;
+                dstIdx += 4;
+            }
+
+        }
+
+        #endregion
+
+        #region Sprites
+        /// <summary>
+        /// Render a sprite on screen, scaled by a given distance.
+        /// </summary>
+        /// <param name="dst">Target PixelBuffer.</param>
+        /// <param name="x">X coordinate of the sprite, centered.</param>
+        /// <param name="distance">Distance from the viewer to render the sprite.</param>
+        /// <param name="y_buffer">A Ray buffer, used for sprite clipping.</param>
+        /// <param name="sprite">The source texture to use for the sprite.</param>
+        public static void sprite(PixelBuffer dst, int x, float distance, Ray[] y_buffer, PixelBuffer sprite)
+        {
+            Render.sprite(dst, x, 1, distance, y_buffer, sprite);
+        }
+        /// <summary>
+        /// Render a sprite on screen, scaled by a given distance.
+        /// </summary>
+        /// <param name="dst">Target PixelBuffer.</param>
+        /// <param name="x">X coordinate of the sprite, centered.</param>
+        /// <param name="scale">Scale the sprite by this amount after distance scaling.</param>
+        /// <param name="distance">Distance from the viewer to render the sprite.</param>
+        /// <param name="y_buffer">A Ray buffer, used for sprite clipping.</param>
+        /// <param name="sprite">The source texture to use for the sprite.</param>
+        public static void sprite(PixelBuffer dst, int x, float scale, float distance, Ray[] y_buffer, PixelBuffer src)
+        {
+            int w = (int)((src.width * scale) / distance);
+            int h = (int)((src.height * scale) / distance);
+            int hw = (int)((w >> 1));
+            int hh = (int)((h >> 1));
+            if (w <= 0 || h <= 0)
+                return;
+            clipRect.x = x - hw;
+            clipRect.y = (dst.height >> 1) - hh;
+            clipRect.w = w;
+            clipRect.h = h;
+
+            clipRect.left = Math.Max(clipRect.x, 0);
+            clipRect.right = Math.Min(clipRect.x + clipRect.w, dst.width);
+            clipRect.top = Math.Max(clipRect.y, 0);
+            clipRect.bot = Math.Min(clipRect.y + clipRect.h, dst.height);
+
+            // find the first visible column
+            for (; clipRect.left < clipRect.right; clipRect.left++)
+                if (y_buffer[clipRect.left].dis >= distance)
+                    break;
+
+            // Draw the sprite
+
+            // Control vars
+            int fp_src_yStep = (src.height << 8) / clipRect.h;
+            int fp_src_xStep = (src.width << 8) / clipRect.w;
+
+            // Textures are rendered at 90 degrees due to column rendering
+            int fp_src_ix = ((clipRect.top - clipRect.y) * fp_src_xStep);
+            int fp_src_iy = ((clipRect.left - clipRect.x) * fp_src_yStep);
+
+            //int fp_src_i = ((cRect.top - cRect.y) * fp_src_yStep) + ((cRect.left - cRect.x) * fp_src_xStep);
+            int fp_src;
+            int srcIdx;
+            // Destination pixel index.
+            int dst_i = (clipRect.left << 2) + (clipRect.top * dst.stride);
+            int dstIdx;
+
+            // OPTI: Implement Nearsided and Farsighted Sprite Renderer
+
+            // Step through the rendering columns.
+            for (; clipRect.left < clipRect.right; clipRect.left++)
+            {
+                dstIdx = dst_i;
+                fp_src = ((fp_src_iy & 0x7FFFFF00) * src.width) + fp_src_ix;
+                // If the sprite is clipped here, we're done.
+                if (y_buffer[clipRect.left].dis < distance)
+                    break;
+                for (int t = clipRect.top; t < clipRect.bot; t++)
+                {
+                    srcIdx = (fp_src >> 8) << 2;
+                    if (srcIdx >= src.pixels.Length)
+                        break;
+                    dst.pixels[dstIdx] = src.pixels[srcIdx];
+                    dst.pixels[dstIdx + 1] = src.pixels[srcIdx + 1];
+                    dst.pixels[dstIdx + 2] = src.pixels[srcIdx + 2];
+                    dst.pixels[dstIdx + 3] = 255;
+                    dstIdx += dst.stride;
+                    fp_src += fp_src_xStep;
+                }
+                fp_src_iy += fp_src_yStep;
+                dst_i += 4;
+            }
+        }
+
         #endregion
     }
 }
