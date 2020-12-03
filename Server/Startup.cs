@@ -46,7 +46,7 @@ namespace dfe.Server
         {
             app.UseCors((builder) =>
             {
-                builder.WithOrigins("*").AllowAnyHeader().AllowAnyMethod();
+                builder.WithOrigins("https://salmon-rock-0c277260f.azurestaticapps.net").AllowAnyHeader().AllowAnyMethod().AllowCredentials();
             });
 
             app.UseResponseCompression();
