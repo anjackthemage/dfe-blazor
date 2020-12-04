@@ -58,7 +58,8 @@ namespace dfe.Server
                 app.UseHsts();
             }
 
-            app.UseHttpsRedirection();
+            // TODO: We *should* be using HTTPs, but I haven't found a simple way to set that up yet
+            //app.UseHttpsRedirection();
             app.UseBlazorFrameworkFiles();
             app.UseStaticFiles();
 
