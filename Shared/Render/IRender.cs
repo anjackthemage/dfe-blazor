@@ -10,7 +10,7 @@ namespace dfe.Shared.Render
 {
     public interface IRender
     {
-        public static Tracer ray_tracer { get; set; }
+        public static Renderer ray_tracer { get; set; }
 
         public void render();
 

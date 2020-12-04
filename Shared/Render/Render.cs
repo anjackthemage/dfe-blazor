@@ -343,7 +343,7 @@ namespace dfe.Shared.Render
         /// <param name="width">Width of the rectangle at distance = 1</param>
         /// <param name="height">Height of the rectangle at distance = 1</param>
         /// <param name="y_buffer">A ray buffer to do distance clipping against.</param>
-        public static void rectDepth(PixelBuffer dst, int centerX, float distance, int width, int height, Ray[] y_buffer)
+        public static void rectDepth(PixelBuffer dst, int centerX, float distance, int width, int height, RayData[] y_buffer)
         {
             width = (int)(width / distance);
             height = (int)(height / distance);
@@ -388,7 +388,7 @@ namespace dfe.Shared.Render
         /// <param name="height">Height of the rectangle at distance = 1</param>
         /// <param name="y_buffer">A ray buffer to do distance clipping against.</param>
         /// <param name="color">The color to render the rectangle.</param>
-        public static void rectDepth(PixelBuffer dst, int centerX, float distance, int width, int height, Ray[] y_buffer, Rgba color)
+        public static void rectDepth(PixelBuffer dst, int centerX, float distance, int width, int height, RayData[] y_buffer, Rgba color)
         {
             width = (int)(width / distance);
             height = (int)(height / distance);
@@ -726,7 +726,7 @@ namespace dfe.Shared.Render
         /// <param name="leftAngles">The Ray that describes the far left pixel column angle.</param>
         /// <param name="rightAngles">The Ray that describes the far right pixel column angle.</param>
         /// <param name="src">Source texture to render from.</param>
-        public static void floor(PixelBuffer dst, int y, float z, float location_x, float location_y, Ray leftAngles, Ray rightAngles, PixelBuffer src)
+        public static void floor(PixelBuffer dst, int y, float z, float location_x, float location_y, RayData leftAngles, RayData rightAngles, PixelBuffer src)
         {
 
             int row = (dst.height / 2) - y;
@@ -770,7 +770,7 @@ namespace dfe.Shared.Render
         /// <param name="distance">Distance from the viewer to render the sprite.</param>
         /// <param name="y_buffer">A Ray buffer, used for sprite clipping.</param>
         /// <param name="sprite">The source texture to use for the sprite.</param>
-        public static void sprite(PixelBuffer dst, int x, float distance, Ray[] y_buffer, PixelBuffer sprite)
+        public static void sprite(PixelBuffer dst, int x, float distance, RayData[] y_buffer, PixelBuffer sprite)
         {
             Render.sprite(dst, x, 1, distance, y_buffer, sprite);
         }
@@ -783,7 +783,7 @@ namespace dfe.Shared.Render
         /// <param name="distance">Distance from the viewer to render the sprite.</param>
         /// <param name="y_buffer">A Ray buffer, used for sprite clipping.</param>
         /// <param name="sprite">The source texture to use for the sprite.</param>
-        public static void sprite(PixelBuffer dst, int x, float scale, float distance, Ray[] y_buffer, PixelBuffer src)
+        public static void sprite(PixelBuffer dst, int x, float scale, float distance, RayData[] y_buffer, PixelBuffer src)
         {
             int w = (int)((src.width * scale) / distance);
             int h = (int)((src.height * scale) / distance);
