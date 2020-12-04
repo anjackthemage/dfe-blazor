@@ -28,7 +28,7 @@ namespace dfe.Client.Engine
         private HubConnection map_hub_conn;
         private HubConnection player_hub_conn;
 
-        public Renderer ray_tracer;
+        //public Renderer ray_tracer;
         public  ChatClient chat_client;
         private MapClient map_client;
         private PlayerClient player_client;
@@ -39,12 +39,14 @@ namespace dfe.Client.Engine
         public GameClient(Uri ph_uri, Uri mh_uri, Uri ch_uri)
         {
             client = this;
+            // Create game simulation.
             game_sim = new ClientSimulation();
+            // Create game state.
             game_state = new ClientState();
-            renderer = new Renderer();
+            // Create rendering instance
+            renderer = new Renderer(320, 240);
 
-            ray_tracer = new Renderer();
-
+            // Create connection Hubs
             player_hub_conn = new HubConnectionBuilder().WithUrl(ph_uri).Build();
 
             map_hub_conn = new HubConnectionBuilder().WithUrl(mh_uri).Build();
@@ -61,7 +63,7 @@ namespace dfe.Client.Engine
             chat_client = new ChatClient(chat_hub_conn);
             //chat_client.onChatUpdated += refreshMessages;
 
-            player_hub_conn.SendAsync("registerPlayerConnection", "TestPlayer", ray_tracer.self);
+            player_hub_conn.SendAsync("registerPlayerConnection", "TestPlayer", game_state.player);
 
 
 
@@ -88,19 +90,18 @@ namespace dfe.Client.Engine
 
         public async Task render()
         {
+            game_sim.process(1, game_state);
+            renderer.render();
             
-            ray_tracer.updateObserver();
-
             // TODO: Move these calls to PlayerClient, don't call updateConnectedPlayers every frame.
             player_hub_conn.SendAsync("updateConnectedPlayers");
-            player_hub_conn.SendAsync("updatePlayerPosition", ray_tracer.self.coord);
-            map_client.level_map.render();
+            player_hub_conn.SendAsync("updatePlayerPosition", game_state.player);
 
             foreach (KeyValuePair<Guid, Player> player_conn in player_client.connected_players)
             {
                 try
                 {
-                    player_conn.Value.render();
+                   // player_conn.Value.render();
                 }
                 catch (Exception e)
                 {
@@ -108,7 +109,7 @@ namespace dfe.Client.Engine
                 }
             }
 
-            //presentScreen(JsRuntime, ray_tracer.frameBuffer);
+            // presentScreen(JsRuntime, ray_tracer.frameBuffer);
         }
     }
 }

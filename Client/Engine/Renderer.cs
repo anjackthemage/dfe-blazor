@@ -1,72 +1,40 @@
 ﻿//using Microsoft.AspNetCore.Components;
 //using Microsoft.JSInterop;
 using System;
+using System.Collections.Generic;
 using System.Numerics;
 //using System.Collections.Generic;
 //using System.Linq;
 //using System.Threading.Tasks;
 using dfe.Shared;
+using dfe.Shared.Render;
 using dfe.Shared.Entities;
 
-namespace dfe.Shared.Render
+namespace dfe.Client.Engine
 {
-
-    public struct input_ctrl
-    {
-        public bool u;
-        public bool d;
-        public bool l;
-        public bool r;
-        public float mouseDelta;
-    }
 
     public class Renderer
     {
+        public const float GRID_X = 16;
+        public const float GRID_Y = 16;
         // The framebuffer to be displayed to the user.
         public PixelBuffer frameBuffer;
         // Ray Data Array
         public RayData[] ray_buffer;
+        // Texture cache for rendering.
+        public Dictionary<int, PixelBuffer> textures;
+        // The current viewpoint.
+        public Camera camera;
 
-        #region Refactor These Out
-        // Test texture
-        public PixelBuffer tex;
-        public PixelBuffer s_tex;
-        public PixelBuffer f_tex;
-
-        // Number of Viewport columns
-        public int view_cols = 320;
-        // Number of Viewport rows
-        public int view_rows = 240;
-        // Rate of heading change during turns.
-        public const float turnRate = 0.05f;
-        // Grid size in units.
-        public const int grid_x = 16;
-        public const int grid_y = 16;
-        // Controller!
-        public input_ctrl input = new input_ctrl();
-        // Observer Mob - This should be the player.
-        public Player self = new Player(128, 128, 0);
-        // Map Object
-        public Map lvl_map = new Map(16, 16);
-        // Field of View
-        public float fov;
-
-        public Mob testSprite = new Mob(new Vector2(136, 128), 0);
-
-        // Color gradient for fun :)
-        public string[] colors;
-        public Map big_map;
-        #endregion
-
-        public Renderer()
+        public Renderer(int screenWidth, int screenHeight)
         {
-            IRender.ray_tracer = this;
+            camera = new Camera(GRID_X, GRID_Y, screenWidth, screenHeight, (float)Math.PI / 2.8f);
+            frameBuffer = new PixelBuffer(screenWidth, screenHeight);
 
-            frameBuffer = new PixelBuffer(view_cols, view_rows);
-            tex = new PixelBuffer(16, 16);
-            s_tex = new PixelBuffer(16, 16);
+            // Generate placeholder texture
+            textures = new Dictionary<int, PixelBuffer>();
+            PixelBuffer tex = new PixelBuffer(16, 16);
             Render.clear(tex, new Rgba(0, 0, 0));
-            Render.clear(s_tex, new Rgba(0, 64, 128));
             for (int y = 0; y < 16; y++)
                 for (int x = 0; x < 16; x++)
                 {
@@ -74,31 +42,34 @@ namespace dfe.Shared.Render
                     byte c = (byte)(y * 16);
                     Render.point(tex, x, y, new Rgba(0, b, c));
                 }
+            textures.Add(0, tex);
 
-            Render.point(tex, 0, 0, new Rgba(255, 0, 0));
-            Render.point(tex, 2, 0, new Rgba(255, 128, 0));
-            Render.point(tex, 3, 0, new Rgba(255, 0, 0));
-
-            // Floor test texture
-            f_tex = new PixelBuffer(64, 64);
-            for(int y = 0; y < 64; y++)
-            {
-                for(int x =0; x < 64; x++)
-                {
-                    Render.point(f_tex, x, y, new Rgba((byte)(x << 2), 0, (byte)(y << 2)));
-                }
-            }
             // Ray buffer used for storing ray cast results.
-            ray_buffer = new RayData[view_cols];
-            for (int index = 0; index < view_cols; index++)
+            ray_buffer = new RayData[camera.view_cols];
+            for (int index = 0; index < ray_buffer.Length; index++)
             {
-                ray_buffer[index] = new RayData(0, 0, 0, 0, false, 0);
+                ray_buffer[index] = new RayData();
             }
-
-            // Current Field of Vision
-            fov = (float)Math.PI / 2.8f;
-
         }
+        public void render()
+        {
+            ClientState state = GameClient.game_state;
+
+            // Update viewpoint based on location.
+            camera.setPosition(state.player.position);
+            camera.view_angle = state.player.angle;
+
+            renderCeiling();
+            renderFloor();
+
+            Map map = GameClient.game_state.map;
+            if (map != null)
+            {
+                ray_buffer = buildRayBuffer(map);
+                renderWalls(map);
+            }
+        }
+
         /// <summary>
         /// Render the current Level
         /// </summary>
@@ -112,32 +83,20 @@ namespace dfe.Shared.Render
             renderSprites();
             Render.rectDepth(frameBuffer, 80, 2, 128, 64, ray_buffer);
         }
-        public void rotObserver(Camera o, float a)
-        {
-            o.a += a;
-            if (o.a >= 2 * (float)Math.PI)
-            {
-                o.a -= (2 * (float)Math.PI);
-            }
-            if (o.a < 0)
-            {
-                o.a += (2 * (float)Math.PI);
-            }
-        }
 
         public RayData[] buildRayBuffer(Map level_map)
         {
             // Lazy init of the ray_buffer
             if (ray_buffer == null)
-                ray_buffer = new RayData[view_cols];
+                ray_buffer = new RayData[camera.view_cols];
 
-            float ang_step = fov / view_cols;
-            float ray_angle = self.angle - (fov / 2);
-            float ang_diff = -(fov / 2);
+            float ang_step = camera.fov / camera.view_cols;
+            float ray_angle = camera.view_angle - (camera.fov / 2);
+            float ang_diff = -(camera.fov / 2);
 
-            for (int index = 0; index < view_cols; index++)
+            for (int index = 0; index < camera.view_cols; index++)
             {
-                rayCast(self, ray_angle, level_map, ray_buffer[index]);
+                rayCast(camera, ray_angle, level_map, ray_buffer[index]);
                 // Dewarp
                 ray_buffer[index].dis = ray_buffer[index].dis * (float)Math.Cos(ang_diff);
                 ray_angle += ang_step;
@@ -147,15 +106,16 @@ namespace dfe.Shared.Render
         }
         public void renderFloor()
         {
+            PixelBuffer tex = textures[0];
             try
             {
-                float obsX = -self.position.X / grid_x;
-                float obsY = -self.position.Y / grid_y;
+                float obsX = -camera.x / camera.grid_x;
+                float obsY = -camera.y / camera.grid_y;
                 RayData leftAngles = ray_buffer[0];
                 RayData rightAngles = ray_buffer[ray_buffer.Length - 1];
                 for (int screenY = frameBuffer.height / 2; screenY < frameBuffer.height; screenY++)
                 {
-                    Render.floor(frameBuffer, screenY, 1, obsX, obsY, leftAngles, rightAngles, f_tex);
+                    Render.floor(frameBuffer, screenY, 1, obsX, obsY, leftAngles, rightAngles, tex);
 
                 }
             } catch (Exception e)
@@ -179,17 +139,17 @@ namespace dfe.Shared.Render
         public void renderSprite(Entity ent_to_render)
         {
             //OPTI: This code section could benefit from using some fixed point integers instead of floats.
-            float nx = (float)Math.Cos(-self.angle);
-            float ny = (float)Math.Sin(-self.angle);
+            float nx = (float)Math.Cos(-camera.view_angle);
+            float ny = (float)Math.Sin(-camera.view_angle);
 
-            float tx = (ent_to_render.position.X - self.position.X) / 16;
-            float ty = (ent_to_render.position.Y - self.position.Y) / 16;
+            float tx = (ent_to_render.position.X - camera.x) / 16;
+            float ty = (ent_to_render.position.Y - camera.y) / 16;
             float sx = ((tx * nx) - (ty * ny));
             float sy = ((tx * ny) + (ty * nx));
 
 
             //OPTI: Math.Tan(fov / 2) is a constant that only needs to be calculated once.
-            float viewAdjacent = (float)(frameBuffer.width / 2) / (float)Math.Tan(fov / 2);
+            float viewAdjacent = (float)(frameBuffer.width / 2) / (float)Math.Tan(camera.fov / 2);
             int screenX = (int)((sy / sx) * viewAdjacent);
 
             Render.sprite(frameBuffer, (int)screenX + (frameBuffer.width / 2), sx, ray_buffer, ent_to_render.sprite);
@@ -204,13 +164,14 @@ namespace dfe.Shared.Render
 
 
             //OPTI: This code section could benefit from using some fixed point integers instead of floats.
-            float nx = (float)Math.Cos(-self.angle);
-            float ny = (float)Math.Sin(-self.angle);
             
-            float tx = (testSprite.position.X - self.position.X) / 16;
-            float ty = (testSprite.position.Y - self.position.Y) / 16;
-            float sx = ((tx * nx) - (ty * ny));
-            float sy = ((tx * ny) + (ty * nx));
+            //float nx = (float)Math.Cos(-self.angle);
+            //float ny = (float)Math.Sin(-self.angle);
+            
+            //float tx = (testSprite.position.X - self.position.X) / 16;
+            //float ty = (testSprite.position.Y - self.position.Y) / 16;
+            //float sx = ((tx * nx) - (ty * ny));
+            //float sy = ((tx * ny) + (ty * nx));
 
             // Debug Drawing 
             // ---
@@ -220,12 +181,12 @@ namespace dfe.Shared.Render
             // ---
 
             //OPTI: Math.Tan(fov / 2) is a constant that only needs to be calculated once.
-            float viewAdjacent = (float)(frameBuffer.width / 2) / (float)Math.Tan(fov / 2);
-            int screenX = (int)((sy / sx) * viewAdjacent);
+            //float viewAdjacent = (float)(frameBuffer.width / 2) / (float)Math.Tan(camera.fov / 2);
+            //int screenX = (int)((sy / sx) * viewAdjacent);
 
             //float screenX = (float)((sy * (frameBuffer.width >> 1)) / (Math.Tan(fov / 2)));
             //int screenX = (int)((Math.Tan(fov / 2) * sy) * (frameBuffer.width / 2));
-            Render.sprite(frameBuffer, (int)screenX + (frameBuffer.width / 2), 8, sx, ray_buffer, tex);
+            //Render.sprite(frameBuffer, (int)screenX + (frameBuffer.width / 2), 8, sx, ray_buffer, textures[0]);
         }
 
         /// <summary>
@@ -241,24 +202,21 @@ namespace dfe.Shared.Render
                 ray = ray_buffer[x];
                 // TODO: Cleanup this little code block.
                 PixelBuffer texBuffer = null;
-                if (ray.wallId == 1)
-                    texBuffer = f_tex;
-                else if (ray.wallId == 2)
-                    texBuffer = s_tex;
+                if (texBuffer == null)
+                    texBuffer = textures[0];
 
-                if (level_map.textures[ray.wallId].pb_data != null)
+                if (level_map.textures[ray.wallId].pixelBuffer != null)
                 {
-                    texBuffer = level_map.textures[ray.wallId].pb_data;
+                    texBuffer = level_map.textures[ray.wallId].pixelBuffer;
                     Render.wallColumn(frameBuffer, x, 1, ray_buffer[x].dis, ray_buffer[x].texOfs, texBuffer, new Rgba(0x0, 0x80,0xFF, 0x08));
                 }
             }
         }
-        public RayData rayCast(Mob obs, float ang, Map level_map, RayData hit)
+        public RayData rayCast(Camera camera, float ang, Map level_map, RayData hit)
         {
-            Vector2 pos = obs.position;
             // Find the map cell that the observer is in.
-            float obsGridX = pos.X / grid_x;
-            float obsGridY = pos.Y / grid_y;
+            float obsGridX = camera.x / this.camera.grid_x;
+            float obsGridY = camera.y / this.camera.grid_y;
 
             // the '>> 0' is a method to floor to an integer.
             int mx = (int)obsGridX; //obsGridX << 0;
@@ -364,48 +322,10 @@ namespace dfe.Shared.Render
                     if (ny > 0) { hit.texOfs = 1.0f - hit.texOfs; }
                 }
 
-                hit.x = hit.x * grid_x;
-                hit.y = hit.y * grid_y;
+                hit.x = hit.x * this.camera.grid_x;
+                hit.y = hit.y * this.camera.grid_y;
             }
             return hit;
-        }
-
-        /// <summary>
-        /// Presents the screen to the user by calling the blitScreen javascript function.
-        /// </summary>
-        /// <param name="js"></param>
-        /// 
-        //public void presentScreen(IJSRuntime js)
-        //{
-        //    IJSUnmarshalledRuntime umjs = (IJSUnmarshalledRuntime)js;
-        //    object result = umjs.InvokeUnmarshalled<byte[], int, int, object>("blitScreen", frameBuffer.pixels, frameBuffer.width, frameBuffer.height);
-        //}
-        public void updateObserver()
-        {
-
-            if (input.u == true)
-            {
-                self.walk(0.5f);
-            }
-            else if (input.d == true)
-            {
-                self.walk(-0.5f);
-            }
-
-            if (input.l == true)
-            {
-                self.strafe(-0.5f);
-            }
-            else if (input.r == true)
-            {
-                self.strafe(0.5f);
-            }
-
-            if (input.mouseDelta != 0)
-            {
-                self.rotate(input.mouseDelta / 64);
-                input.mouseDelta = 0;
-            }
         }
     }
 }

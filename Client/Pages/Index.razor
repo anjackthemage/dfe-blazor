@@ -81,12 +81,11 @@
     private HubConnection map_hub_conn;
     private HubConnection player_hub_conn;
 
-    private Renderer ray_tracer;
-
     private GameClient game_client;
     //private ChatClient chat_client;
     //private MapClient map_client;
     //private PlayerClient player_client;
+    private Renderer ray_tracer;
 
     private List<string> messages = new List<string>();
     private string user_input;
@@ -102,10 +101,7 @@
         Uri chat_hub_uri = NavigationManager.ToAbsoluteUri("/chathub");
 
         game_client = new GameClient(player_hub_uri, map_hub_uri, chat_hub_uri);
-
-        ray_tracer = game_client.ray_tracer;
-
-
+        ray_tracer = GameClient.renderer;
 
         // TODO: don't start gameloop until player registration is complete
         // TODO: also, we should probably keep map and chat hidden until we successfully register with server
@@ -190,20 +186,21 @@
     [JSInvokable]
     public void handleKeyUp(KeyboardEventArgs ke_args)
     {
+        ClientSimulation sim = GameClient.game_sim;
         string key = ke_args.Key;
         switch (key)
         {
             case "w":
-                ray_tracer.input.u = false;
+                sim.input_state.u = false;
                 break;
             case "s":
-                ray_tracer.input.d = false;
+                sim.input_state.d = false;
                 break;
             case "a":
-                ray_tracer.input.l = false;
+                sim.input_state.l = false;
                 break;
             case "d":
-                ray_tracer.input.r = false;
+                sim.input_state.r = false;
                 break;
             default:
                 break;
@@ -213,20 +210,21 @@
     [JSInvokable]
     public void handleKeyDown(KeyboardEventArgs ke_args)
     {
+        ClientSimulation sim = GameClient.game_sim;
         string key = ke_args.Key;
         switch (key)
         {
             case "w":
-                ray_tracer.input.u = true;
+                sim.input_state.u = true;
                 break;
             case "s":
-                ray_tracer.input.d = true;
+                sim.input_state.d = true;
                 break;
             case "a":
-                ray_tracer.input.l = true;
+                sim.input_state.l = true;
                 break;
             case "d":
-                ray_tracer.input.r = true;
+                sim.input_state.r = true;
                 break;
             default:
                 break;
@@ -237,7 +235,7 @@
     public async void handleMouse()
     {
         float x = await JsRuntime.InvokeAsync<float>("pollMouse");
-        ray_tracer.input.mouseDelta = x;
+        //ray_tracer.input.mouseDelta = x;
     }
 
     [JSInvokable]

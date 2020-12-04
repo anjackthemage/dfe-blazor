@@ -22,7 +22,9 @@ namespace dfe.Shared.Entities
         /// </summary>
         public Mob()
         {
-
+            position.X = 0;
+            position.Y = 0;
+            rotate(0);
         }
 
         /// <summary>
@@ -33,8 +35,8 @@ namespace dfe.Shared.Entities
         /// <param name="angle_initial">Initial angle mob will face.</param>
         public Mob(float x_initial, float y_initial, float angle_initial)
         {
-            this.position = new Vector2(x_initial, y_initial);
-            this.angle = angle_initial;
+            this.position = new Coord(x_initial, y_initial);
+            heading = new Vector2(1, 0);
         }
 
         /// <summary>
@@ -42,10 +44,10 @@ namespace dfe.Shared.Entities
         /// </summary>
         /// <param name="position_initial">Initial location of mob.</param>
         /// <param name="angle_initial">Initial angle mob will face.</param>
-        public Mob(Vector2 position_initial, float angle_initial)
+        public Mob(Coord position_initial, float angle_initial)
         {
             this.position = position_initial;
-            this.angle = angle_initial;
+            heading = new Vector2(1, 0);
         }
 
         /// <summary>
@@ -76,16 +78,12 @@ namespace dfe.Shared.Entities
         {
             position.X += (heading.X * distance);
             position.Y += (heading.Y * distance);
-            coord.X = position.X;
-            coord.Y = position.Y;
         }
 
         public void strafe(float distance)
         {
             position.X += (-heading.Y * distance);
             position.Y += (heading.X * distance);
-            coord.X = position.X;
-            coord.Y = position.Y;
         }
         public void updatePosition()
         {

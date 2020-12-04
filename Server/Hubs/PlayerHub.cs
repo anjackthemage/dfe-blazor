@@ -51,8 +51,8 @@ namespace dfe.Server.Hubs
             Player temp_player = connected_players[Context.ConnectionId];
             temp_player.position.X = new_position.X;
             temp_player.position.Y = new_position.Y;
-            temp_player.coord.X = new_position.X;
-            temp_player.coord.Y = new_position.Y;
+            temp_player.position.X = new_position.X;
+            temp_player.position.Y = new_position.Y;
 
             Dictionary<Guid, Coord> player_locations = new Dictionary<Guid, Coord>();
 

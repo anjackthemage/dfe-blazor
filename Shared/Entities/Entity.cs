@@ -16,9 +16,19 @@ namespace dfe.Shared.Entities
         public float X;
         [JsonInclude]
         public float Y;
+        public Coord()
+        {
+            X = 0;
+            Y = 0;
+        }
+        public Coord(float x, float y)
+        {
+            X = x;
+            Y = y;
+        }
     }
 
-    public class Entity : IRender
+    public class Entity
     {
         public int id;
 
@@ -26,9 +36,7 @@ namespace dfe.Shared.Entities
         public Guid guid;
 
         [JsonInclude]
-        public Coord coord = new Coord();
-
-        public Vector2 position;
+        public Coord position = new Coord();
         
         public PixelBuffer sprite { get; set; }
 
@@ -40,12 +48,6 @@ namespace dfe.Shared.Entities
         public Entity()
         {
             
-        }
-
-        public void render()
-        {
-            IRender render = this;
-            render.renderSprite(this);
         }
     }
 }
