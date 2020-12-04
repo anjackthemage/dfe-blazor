@@ -23,8 +23,7 @@ namespace dfe.Client.Engine
         // Handles high level rendering procedures.
         public static Renderer renderer;
 
-        [Inject]
-        public NavigationManager NavigationManager { get; set; }
+        public IJSRuntime JsRuntime;
 
         private HubConnection chat_hub_conn;
         private HubConnection map_hub_conn;
@@ -109,12 +108,12 @@ namespace dfe.Client.Engine
             //presentScreen(JsRuntime, ray_tracer.frameBuffer);
         }
 
-        public void handleKeyboardInput(KeyboardEventArgs kb_args)
+        public void handleKeyboardInput(KeyboardEventArgs kbe_args)
         {
-            switch(kb_args.Type)
+            switch(kbe_args.Type)
             {
                 case "keyup":
-                    switch(kb_args.Key)
+                    switch(kbe_args.Key)
                     {
                         case "w":
                             ray_tracer.input.u = false;
@@ -133,7 +132,7 @@ namespace dfe.Client.Engine
                     }
                     break;
                 case "keydown":
-                    switch (kb_args.Key)
+                    switch (kbe_args.Key)
                     {
                         case "w":
                             ray_tracer.input.u = true;
@@ -152,9 +151,17 @@ namespace dfe.Client.Engine
                     }
                     break;
                 default:
-                    Console.WriteLine("Unhandled KeyboardEventArgs.Type: {0}", kb_args.Type);
+                    Console.WriteLine("Unhandled KeyboardEventArgs.Type: {0}", kbe_args.Type);
                     break;
             }
         }
+
+        
+        public async void handleMouseInput(MouseEventArgs me_args)
+        {
+            float x = await JsRuntime.InvokeAsync<float>("pollMouse");
+            ray_tracer.input.mouseDelta = x;
+        }
+
     }
 }
