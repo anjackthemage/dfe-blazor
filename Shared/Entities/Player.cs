@@ -11,6 +11,9 @@ namespace dfe.Shared.Entities
 {
     public class Player : Mob
     {
+        // For client-side, this is where we will store the local player, server can ignore this
+        public static Player local;
+
         [JsonInclude]
         public String player_name;
 

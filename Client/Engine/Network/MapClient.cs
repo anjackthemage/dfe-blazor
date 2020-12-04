@@ -13,9 +13,6 @@ namespace dfe.Client.Engine.Network
     {
         public static MapClient map_client;
 
-        // REFACTOR: Duplicate instance of ray tracer ?
-        public Tracer ray_tracer;
-
         public HubConnection map_hub_conn;
 
         public Map level_map;
@@ -36,12 +33,6 @@ namespace dfe.Client.Engine.Network
                 {
                     map_hub_conn.SendAsync("getSprite", spr.id);
                 }
-            });
-
-            map_hub_conn.On<byte[]>("receiveImage", (data) =>
-            {
-                ray_tracer.s_tex.pixels = data;
-
             });
 
             map_hub_conn.On<int, byte[]>("receiveSprite", (sprite_id, sprite_bytes) =>

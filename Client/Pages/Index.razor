@@ -66,15 +66,15 @@
 
 @code {
 
-        // TODO: Need to store a cookie on client machine to save options state (mute, etc,)
+    // TODO: Need to store a cookie on client machine to save options state (mute, etc,)
 
-        //GameClient game_client = new GameClient();
+    //GameClient game_client = new GameClient();
 
     protected ElementReference render_canvas;
 
     private bool b_is_audio_muted = true;
 
-
+    public bool isConnected;
 
     // network
     private HubConnection chat_hub_conn;
@@ -82,9 +82,11 @@
     private HubConnection player_hub_conn;
 
     private Tracer ray_tracer;
-    private ChatClient chat_client;
-    private MapClient map_client;
-    private PlayerClient player_client;
+
+    private GameClient game_client;
+    //private ChatClient chat_client;
+    //private MapClient map_client;
+    //private PlayerClient player_client;
 
     private List<string> messages = new List<string>();
     private string user_input;
@@ -94,28 +96,30 @@
 
     protected override async Task OnInitializedAsync()
     {
-        ray_tracer = new Tracer();
+
+        Uri player_hub_uri = NavigationManager.ToAbsoluteUri("/playerhub");
+        Uri map_hub_uri = NavigationManager.ToAbsoluteUri("/maphub");
+        Uri chat_hub_uri = NavigationManager.ToAbsoluteUri("/chathub");
+
+        game_client = new GameClient(player_hub_uri, map_hub_uri, chat_hub_uri);
+
+        ray_tracer = game_client.ray_tracer;
 
 
-        player_hub_conn = new HubConnectionBuilder().WithUrl(NavigationManager.ToAbsoluteUri("/playerhub")).Build();
-
-        map_hub_conn = new HubConnectionBuilder().WithUrl(NavigationManager.ToAbsoluteUri("/maphub")).Build();
-
-        chat_hub_conn = new HubConnectionBuilder().WithUrl(NavigationManager.ToAbsoluteUri("/chathub")).Build();
 
         // TODO: don't start gameloop until player registration is complete
         // TODO: also, we should probably keep map and chat hidden until we successfully register with server
 
-        player_client = new PlayerClient(player_hub_conn);
+        //player_client = new PlayerClient(player_hub_conn);
 
-        map_client = new MapClient(map_hub_conn);
-        map_client.ray_tracer = ray_tracer;
-        map_client.loadMapFromServer();
+        //map_client = new MapClient(map_hub_conn);
+        //map_client.ray_tracer = ray_tracer;
+        //map_client.loadMapFromServer();
 
-        chat_client = new ChatClient(chat_hub_conn);
-        chat_client.onChatUpdated += refreshMessages;
+        //chat_client = new ChatClient(chat_hub_conn);
+        //chat_client.onChatUpdated += refreshMessages;
 
-        await player_hub_conn.SendAsync("registerPlayerConnection", "TestPlayer", ray_tracer.self);
+        //await player_hub_conn.SendAsync("registerPlayerConnection", "TestPlayer", ray_tracer.self);
 
         await base.OnInitializedAsync();
     }
@@ -158,29 +162,29 @@
     [JSInvokable]
     public async ValueTask update(double time_stamp)
     {
-        if (PlayerClient.b_is_player_registered)
-        {
-            ray_tracer.updateObserver();
+        //if (PlayerClient.b_is_player_registered)
+        //{
+        //    ray_tracer.updateObserver();
 
-            // TODO: Move these calls to PlayerClient, don't call updateConnectedPlayers every frame.
-            player_hub_conn.SendAsync("updateConnectedPlayers");
-            player_hub_conn.SendAsync("updatePlayerPosition", ray_tracer.self.coord);
-            map_client.level_map.render();
+        //    // TODO: Move these calls to PlayerClient, don't call updateConnectedPlayers every frame.
+        //    player_hub_conn.SendAsync("updateConnectedPlayers");
+        //    player_hub_conn.SendAsync("updatePlayerPosition", ray_tracer.self.coord);
+        //    map_client.level_map.render();
 
-            foreach (KeyValuePair<Guid, Player> player_conn in player_client.connected_players)
-            {
-                try
-                {
-                    player_conn.Value.render();
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine("Exception: {0}", e.ToString());
-                }
-            }
-
-            presentScreen(JsRuntime, ray_tracer.frameBuffer);
-        }
+        //    foreach (KeyValuePair<Guid, Player> player_conn in player_client.connected_players)
+        //    {
+        //        try
+        //        {
+        //            player_conn.Value.render();
+        //        }
+        //        catch (Exception e)
+        //        {
+        //            Console.WriteLine("Exception: {0}", e.ToString());
+        //        }
+        //    }
+        game_client.render();
+        presentScreen(JsRuntime, ray_tracer.frameBuffer);
+        //}
     }
 
     [JSInvokable]
@@ -246,7 +250,7 @@
     public async Task sendMsg()
     {
         //await chat_hub_conn.SendAsync("sendMessage", user_input, msg_input);
-        await chat_client.sendMsg(msg_input, user_input);
+        await game_client.chat_client.sendMsg(msg_input, user_input);
     }
 
     public void refreshMessages(object sender, ChatMessageEventArgs che_args)
@@ -255,7 +259,7 @@
         StateHasChanged();
     }
 
-    public bool isConnected => chat_hub_conn.State == HubConnectionState.Connected;
+
 
     // Chat End
 
