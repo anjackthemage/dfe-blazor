@@ -20,66 +20,12 @@ namespace dfe.Shared.Render
         public float mouseDelta;
     }
 
-    public class Observer
-    {
-        public float x;
-        public float y;
-        public float a;
-
-        public Observer(float x_coord, float y_coord, float angle)
-        {
-            this.x = x_coord;
-            this.y = y_coord;
-            this.a = angle;
-        }
-    }
-
-    /// <summary>
-    /// Describes a ray -> map intersection.
-    /// Used for detecting where a ray hits a block on the blockmap.
-    /// </summary>
-    public class Ray
-    {
-        // X angle of the ray.
-        public float ax;
-        // Y angle of the ray.
-        public float ay;
-        // X coordinate ray hit.
-        public float x;
-        // Y coordinate ray hit.
-        public float y;
-        // The map tile that the ray hit.
-        public int map_x;
-        // The map tile Y
-        public int map_y;
-        // Bool value stating whether this ray hit or not.
-        public bool hit;
-        // Texture index of hit.
-        public int wallId;
-        // Texture offset where the hit occured.
-        public float texOfs;
-        // The distance, in map units, from the cast point.
-        public float dis;
-        public Ray(float x_coord, float y_coord, int map_x, int map_y, bool hit, float new_d)
-        {
-            this.ax = 1; 
-            this.ay = 0; 
-            this.x = x_coord;
-            this.y = y_coord;
-            this.map_x = map_x;
-            this.map_y = map_y;
-            this.hit = hit;
-            this.texOfs = 0;
-            this.dis = new_d;
-        }
-    }
-
-    public class Tracer
+    public class Renderer
     {
         // The framebuffer to be displayed to the user.
         public PixelBuffer frameBuffer;
         // Ray Data Array
-        public Ray[] ray_buffer;
+        public RayData[] ray_buffer;
 
         #region Refactor These Out
         // Test texture
@@ -112,7 +58,7 @@ namespace dfe.Shared.Render
         public Map big_map;
         #endregion
 
-        public Tracer()
+        public Renderer()
         {
             IRender.ray_tracer = this;
 
@@ -143,10 +89,10 @@ namespace dfe.Shared.Render
                 }
             }
             // Ray buffer used for storing ray cast results.
-            ray_buffer = new Ray[view_cols];
+            ray_buffer = new RayData[view_cols];
             for (int index = 0; index < view_cols; index++)
             {
-                ray_buffer[index] = new Ray(0, 0, 0, 0, false, 0);
+                ray_buffer[index] = new RayData(0, 0, 0, 0, false, 0);
             }
 
             // Current Field of Vision
@@ -166,7 +112,7 @@ namespace dfe.Shared.Render
             renderSprites();
             Render.rectDepth(frameBuffer, 80, 2, 128, 64, ray_buffer);
         }
-        public void rotObserver(Observer o, float a)
+        public void rotObserver(Camera o, float a)
         {
             o.a += a;
             if (o.a >= 2 * (float)Math.PI)
@@ -179,11 +125,11 @@ namespace dfe.Shared.Render
             }
         }
 
-        public Ray[] buildRayBuffer(Map level_map)
+        public RayData[] buildRayBuffer(Map level_map)
         {
             // Lazy init of the ray_buffer
             if (ray_buffer == null)
-                ray_buffer = new Ray[view_cols];
+                ray_buffer = new RayData[view_cols];
 
             float ang_step = fov / view_cols;
             float ray_angle = self.angle - (fov / 2);
@@ -205,8 +151,8 @@ namespace dfe.Shared.Render
             {
                 float obsX = -self.position.X / grid_x;
                 float obsY = -self.position.Y / grid_y;
-                Ray leftAngles = ray_buffer[0];
-                Ray rightAngles = ray_buffer[ray_buffer.Length - 1];
+                RayData leftAngles = ray_buffer[0];
+                RayData rightAngles = ray_buffer[ray_buffer.Length - 1];
                 for (int screenY = frameBuffer.height / 2; screenY < frameBuffer.height; screenY++)
                 {
                     Render.floor(frameBuffer, screenY, 1, obsX, obsY, leftAngles, rightAngles, f_tex);
@@ -289,7 +235,7 @@ namespace dfe.Shared.Render
         /// </summary>
         public void renderWalls(Map level_map)
         {
-            Ray ray;
+            RayData ray;
             for (int x = 0; x < frameBuffer.width; x++)
             {
                 ray = ray_buffer[x];
@@ -307,7 +253,7 @@ namespace dfe.Shared.Render
                 }
             }
         }
-        public Ray rayCast(Mob obs, float ang, Map level_map, Ray hit)
+        public RayData rayCast(Mob obs, float ang, Map level_map, RayData hit)
         {
             Vector2 pos = obs.position;
             // Find the map cell that the observer is in.

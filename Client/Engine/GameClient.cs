@@ -14,6 +14,12 @@ namespace dfe.Client.Engine
     {
 
         public static GameClient client;
+        // Game logic, used for updating things in a ClientState
+        public static ClientSimulation game_sim;
+        // Current state of the client game world.
+        public static ClientState game_state;
+        // Handles high level rendering procedures.
+        public static Renderer renderer;
 
         [Inject]
         public NavigationManager NavigationManager { get; set; }
@@ -22,18 +28,22 @@ namespace dfe.Client.Engine
         private HubConnection map_hub_conn;
         private HubConnection player_hub_conn;
 
-        public Tracer ray_tracer;
+        public Renderer ray_tracer;
         public  ChatClient chat_client;
         private MapClient map_client;
         private PlayerClient player_client;
+
 
         public static bool b_is_running { get; private set; }
 
         public GameClient(Uri ph_uri, Uri mh_uri, Uri ch_uri)
         {
             client = this;
+            game_sim = new ClientSimulation();
+            game_state = new ClientState();
+            renderer = new Renderer();
 
-            ray_tracer = new Tracer();
+            ray_tracer = new Renderer();
 
             player_hub_conn = new HubConnectionBuilder().WithUrl(ph_uri).Build();
 
@@ -78,6 +88,7 @@ namespace dfe.Client.Engine
 
         public async Task render()
         {
+            
             ray_tracer.updateObserver();
 
             // TODO: Move these calls to PlayerClient, don't call updateConnectedPlayers every frame.
