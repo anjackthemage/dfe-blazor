@@ -2,7 +2,9 @@
 using dfe.Shared.Entities;
 using dfe.Shared.Render;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.JSInterop;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -64,12 +66,8 @@ namespace dfe.Client.Engine
             //}
         }
 
-        private async Task doGameLoop()
+        public async Task doGameLoop()
         {
-
-            if (PlayerClient.b_is_player_registered)
-            {
-            }
             while (b_is_running)
             {
                 
@@ -98,6 +96,54 @@ namespace dfe.Client.Engine
             }
 
             //presentScreen(JsRuntime, ray_tracer.frameBuffer);
+        }
+
+        public void handleKeyboardInput(KeyboardEventArgs kb_args)
+        {
+            switch(kb_args.Type)
+            {
+                case "keyup":
+                    switch(kb_args.Key)
+                    {
+                        case "w":
+                            ray_tracer.input.u = false;
+                            break;
+                        case "s":
+                            ray_tracer.input.d = false;
+                            break;
+                        case "a":
+                            ray_tracer.input.l = false;
+                            break;
+                        case "d":
+                            ray_tracer.input.r = false;
+                            break;
+                        default:
+                            break;
+                    }
+                    break;
+                case "keydown":
+                    switch (kb_args.Key)
+                    {
+                        case "w":
+                            ray_tracer.input.u = true;
+                            break;
+                        case "s":
+                            ray_tracer.input.d = true;
+                            break;
+                        case "a":
+                            ray_tracer.input.l = true;
+                            break;
+                        case "d":
+                            ray_tracer.input.r = true;
+                            break;
+                        default:
+                            break;
+                    }
+                    break;
+                default:
+                    Console.WriteLine("Unhandled KeyboardEventArgs.Type: {0}", kb_args.Type);
+                    break;
+            }
         }
     }
 }

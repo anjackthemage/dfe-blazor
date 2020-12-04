@@ -16,8 +16,8 @@
     <div>
         <canvas tabindex="0" id="game_canvas" width="640" height="480"
                 @ref="render_canvas"
-                @onkeydown="handleKeyDown"
-                @onkeyup="handleKeyUp"
+                @onkeydown="handleKbInput"
+                @onkeyup="handleKbInput"
                 @onpointerdown="handlePointerDown"
                 @onmousemove="handleMouse">
         </canvas>
@@ -76,6 +76,9 @@
 
     public bool isConnected;
 
+
+    Action<KeyboardEventArgs> handleKbInput;
+
     // network
     private HubConnection chat_hub_conn;
     private HubConnection map_hub_conn;
@@ -83,7 +86,7 @@
 
     private Tracer ray_tracer;
 
-    private GameClient game_client;
+    private static GameClient game_client;
     //private ChatClient chat_client;
     //private MapClient map_client;
     //private PlayerClient player_client;
@@ -97,11 +100,14 @@
     protected override async Task OnInitializedAsync()
     {
 
+
         Uri player_hub_uri = NavigationManager.ToAbsoluteUri("/playerhub");
         Uri map_hub_uri = NavigationManager.ToAbsoluteUri("/maphub");
         Uri chat_hub_uri = NavigationManager.ToAbsoluteUri("/chathub");
 
         game_client = new GameClient(player_hub_uri, map_hub_uri, chat_hub_uri);
+
+        this.handleKbInput = game_client.handleKeyboardInput;
 
         ray_tracer = game_client.ray_tracer;
 
@@ -187,51 +193,51 @@
         //}
     }
 
-    [JSInvokable]
-    public void handleKeyUp(KeyboardEventArgs ke_args)
-    {
-        string key = ke_args.Key;
-        switch (key)
-        {
-            case "w":
-                ray_tracer.input.u = false;
-                break;
-            case "s":
-                ray_tracer.input.d = false;
-                break;
-            case "a":
-                ray_tracer.input.l = false;
-                break;
-            case "d":
-                ray_tracer.input.r = false;
-                break;
-            default:
-                break;
-        }
-    }
+    //[JSInvokable]
+    //public void handleKeyUp(KeyboardEventArgs ke_args)
+    //{
+    //    string key = ke_args.Key;
+    //    switch (key)
+    //    {
+    //        case "w":
+    //            ray_tracer.input.u = false;
+    //            break;
+    //        case "s":
+    //            ray_tracer.input.d = false;
+    //            break;
+    //        case "a":
+    //            ray_tracer.input.l = false;
+    //            break;
+    //        case "d":
+    //            ray_tracer.input.r = false;
+    //            break;
+    //        default:
+    //            break;
+    //    }
+    //}
 
-    [JSInvokable]
-    public void handleKeyDown(KeyboardEventArgs ke_args)
-    {
-        string key = ke_args.Key;
-        switch (key)
-        {
-            case "w":
-                ray_tracer.input.u = true;
-                break;
-            case "s":
-                ray_tracer.input.d = true;
-                break;
-            case "a":
-                ray_tracer.input.l = true;
-                break;
-            case "d":
-                ray_tracer.input.r = true;
-                break;
-            default:
-                break;
-        }
-    }
+    //[JSInvokable]
+    //public void handleKeyDown(KeyboardEventArgs ke_args)
+    //{
+    //    string key = ke_args.Key;
+    //    switch (key)
+    //    {
+    //        case "w":
+    //            ray_tracer.input.u = true;
+    //            break;
+    //        case "s":
+    //            ray_tracer.input.d = true;
+    //            break;
+    //        case "a":
+    //            ray_tracer.input.l = true;
+    //            break;
+    //        case "d":
+    //            ray_tracer.input.r = true;
+    //            break;
+    //        default:
+    //            break;
+    //    }
+    //}
 
     [JSInvokable]
     public async void handleMouse()
