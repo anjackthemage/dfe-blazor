@@ -58,7 +58,13 @@ namespace dfe.Client.Engine
             Map map = GameClient.game_state.map;
             ray_buffer = buildRayBuffer(camera, map);
             renderWalls(map);
+            testEnt = new Entity();
+            testEnt.position.X = 128;
+            testEnt.position.Y = 128;
+
+            renderSprite(testEnt);
         }
+        Entity testEnt;
         public bool once;
         public RayData[] buildRayBuffer(Camera cam, Map level_map)
         {
@@ -126,7 +132,7 @@ namespace dfe.Client.Engine
             int screenX = (int)((sy / sx) * viewAdjacent);
 
             Render.sprite(frame_buffer, (int)screenX + (frame_buffer.width / 2), sx, ray_buffer, ent_to_render.sprite);
-            
+            //Render.sprite(frame_buffer, (int)screenX + (frame_buffer.width / 2), 1, sx, ray_buffer, sdef);
         }
 
         public void renderSprites()

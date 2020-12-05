@@ -838,10 +838,103 @@ namespace dfe.Shared.Render
                     srcIdx = (fp_src >> 8) << 2;
                     if (srcIdx >= src.pixels.Length)
                         break;
-                    dst.pixels[dstIdx] = src.pixels[srcIdx];
-                    dst.pixels[dstIdx + 1] = src.pixels[srcIdx + 1];
-                    dst.pixels[dstIdx + 2] = src.pixels[srcIdx + 2];
-                    dst.pixels[dstIdx + 3] = 255;
+                    if (src.pixels[srcIdx + 3] == 0xFF)
+                    {
+                        dst.pixels[dstIdx] = src.pixels[srcIdx];
+                        dst.pixels[dstIdx + 1] = src.pixels[srcIdx + 1];
+                        dst.pixels[dstIdx + 2] = src.pixels[srcIdx + 2];
+                        dst.pixels[dstIdx + 3] = 255;
+                    }
+                    dstIdx += dst.stride;
+                    fp_src += fp_src_xStep;
+                }
+                fp_src_iy += fp_src_yStep;
+                dst_i += 4;
+            }
+        }
+
+        public static void sprite(PixelBuffer dst, int x, float scale, float distance, RayData[] y_buffer, SpriteDef sprite)
+        {
+            // No alpha blending.
+            if(sprite.alpha == 0xFF)
+            {
+                Render.sprite(dst, x, scale, distance, y_buffer, sprite.pixelBuffer);
+                return;
+            }
+
+            PixelBuffer src = sprite.pixelBuffer;
+            byte alpha = sprite.alpha;
+
+            int w = (int)((src.width * scale) / distance);
+            int h = (int)((src.height * scale) / distance);
+            int hw = (int)((w >> 1));
+            int hh = (int)((h >> 1));
+            if (w <= 0 || h <= 0)
+                return;
+            clipRect.x = x - hw;
+            clipRect.y = (dst.height >> 1) - hh;
+            clipRect.w = w;
+            clipRect.h = h;
+
+            clipRect.left = Math.Max(clipRect.x, 0);
+            clipRect.right = Math.Min(clipRect.x + clipRect.w, dst.width);
+            clipRect.top = Math.Max(clipRect.y, 0);
+            clipRect.bot = Math.Min(clipRect.y + clipRect.h, dst.height);
+
+            // find the first visible column
+            for (; clipRect.left < clipRect.right; clipRect.left++)
+                if (y_buffer[clipRect.left].dis >= distance)
+                    break;
+
+            // Draw the sprite
+
+            // Control vars
+            int fp_src_yStep = (src.height << 8) / clipRect.h;
+            int fp_src_xStep = (src.width << 8) / clipRect.w;
+
+            // Textures are rendered at 90 degrees due to column rendering
+            int fp_src_ix = ((clipRect.top - clipRect.y) * fp_src_xStep);
+            int fp_src_iy = ((clipRect.left - clipRect.x) * fp_src_yStep);
+
+            //int fp_src_i = ((cRect.top - cRect.y) * fp_src_yStep) + ((cRect.left - cRect.x) * fp_src_xStep);
+            int fp_src;
+            int srcIdx;
+            // Destination pixel index.
+            int dst_i = (clipRect.left << 2) + (clipRect.top * dst.stride);
+            int dstIdx;
+
+            int fp_sblend = alpha;
+            int fp_dblend = 0xFF - alpha;
+            byte r;
+            byte g;
+            byte b;
+
+
+            // OPTI: Implement Nearsided and Farsighted Sprite Renderer
+
+            // Step through the rendering columns.
+            for (; clipRect.left < clipRect.right; clipRect.left++)
+            {
+                dstIdx = dst_i;
+                fp_src = ((fp_src_iy & 0x7FFFFF00) * src.width) + fp_src_ix;
+                // If the sprite is clipped here, we're done.
+                if (y_buffer[clipRect.left].dis < distance)
+                    break;
+                for (int t = clipRect.top; t < clipRect.bot; t++)
+                {
+                    srcIdx = (fp_src >> 8) << 2;
+                    if (srcIdx >= src.pixels.Length)
+                        break;
+                    if (src.pixels[srcIdx + 3] == 0xFF)
+                    {
+                        r = (byte)(((dst.pixels[dstIdx] * fp_dblend) + (src.pixels[srcIdx] * fp_sblend)) >> 8);
+                        g = (byte)(((dst.pixels[dstIdx + 1] * fp_dblend) + (src.pixels[srcIdx + 1] * fp_sblend)) >> 8);
+                        b = (byte)(((dst.pixels[dstIdx + 2] * fp_dblend) + (src.pixels[srcIdx + 2] * fp_sblend)) >> 8);
+                        dst.pixels[dstIdx] = r;
+                        dst.pixels[dstIdx + 1] = g;
+                        dst.pixels[dstIdx + 2] = b;
+                        dst.pixels[dstIdx + 3] = 255;
+                    }
                     dstIdx += dst.stride;
                     fp_src += fp_src_xStep;
                 }
