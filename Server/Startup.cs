@@ -17,10 +17,7 @@ namespace dfe.Server
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
-
-            //GameServer game_server = new GameServer();
-
-            Map.current = new Map("level_test");
+            GameServer.server = new GameServer();
         }
 
         public IConfiguration Configuration { get; }

@@ -32,17 +32,17 @@ namespace dfe.Shared.Render
         public float texOfs;
         // The distance, in map units, from the cast point.
         public float dis;
-        public RayData(float x_coord, float y_coord, int map_x, int map_y, bool hit, float new_d)
+        public RayData()
         {
-            this.ax = 1;
-            this.ay = 0;
-            this.x = x_coord;
-            this.y = y_coord;
-            this.map_x = map_x;
-            this.map_y = map_y;
-            this.hit = hit;
-            this.texOfs = 0;
-            this.dis = new_d;
+            ax = 1;
+            ay = 0;
+            x = 0;
+            y = 0;
+            map_x = 0;
+            map_y = 0;
+            hit = false;
+            texOfs = 0;
+            dis = 0;
         }
     }
 }

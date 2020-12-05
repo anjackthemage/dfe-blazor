@@ -52,14 +52,14 @@ namespace dfe.Client.Engine.Network
                     {
                         if (connected_players.Count > 0 && connected_players.ContainsKey(plyr.guid))
                         {
-                            connected_players[plyr.guid].coord = plyr.coord;
-                            connected_players[plyr.guid].position.X = plyr.coord.X;
-                            connected_players[plyr.guid].position.Y = plyr.coord.Y;
+                            connected_players[plyr.guid].position = plyr.position;
+                            connected_players[plyr.guid].position.X = plyr.position.X;
+                            connected_players[plyr.guid].position.Y = plyr.position.Y;
                             connected_players[plyr.guid].sprite = MapClient.map_client.level_map.sprites[1].pb_data;
                         }
                         else
                         {
-                            Player temp_player = new Player(plyr.coord.X, plyr.coord.Y, 0.0f);
+                            Player temp_player = new Player(plyr.position.X, plyr.position.Y, 0.0f);
                             temp_player.sprite = MapClient.map_client.level_map.sprites[1].pb_data;
                             temp_player.guid = plyr.guid;
                             connected_players.Add(temp_player.guid, temp_player);
@@ -76,7 +76,6 @@ namespace dfe.Client.Engine.Network
                     Coord position = player_conn.Value;
                     if (connected_players.ContainsKey(plyr_id))
                     {
-                        connected_players[plyr_id].coord = position;
                         connected_players[plyr_id].position.X = position.X;
                         connected_players[plyr_id].position.Y = position.Y;
                     }

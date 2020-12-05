@@ -80,8 +80,6 @@
     Action<KeyboardEventArgs> handleKbInput;
     Action<MouseEventArgs> handleMouseInput;
 
-    private Renderer ray_tracer;
-
     private static GameClient game_client;
 
     private List<string> messages = new List<string>();
@@ -99,15 +97,10 @@
         Uri chat_hub_uri = NavigationManager.ToAbsoluteUri("/chathub");
 
         game_client = new GameClient(player_hub_uri, map_hub_uri, chat_hub_uri);
-
         game_client.JsRuntime = JsRuntime;
-
+      
         this.handleKbInput = game_client.handleKeyboardInput;
         this.handleMouseInput = game_client.handleMouseInput;
-
-        ray_tracer = game_client.ray_tracer;
-
-
         await base.OnInitializedAsync();
     }
 
@@ -149,9 +142,30 @@
     [JSInvokable]
     public async ValueTask update(double time_stamp)
     {
-        
+        //if (PlayerClient.b_is_player_registered)
+        //{
+        //    ray_tracer.updateObserver();
+
+        //    // TODO: Move these calls to PlayerClient, don't call updateConnectedPlayers every frame.
+        //    player_hub_conn.SendAsync("updateConnectedPlayers");
+        //    player_hub_conn.SendAsync("updatePlayerPosition", ray_tracer.self.coord);
+        //    map_client.level_map.render();
+
+        //    foreach (KeyValuePair<Guid, Player> player_conn in player_client.connected_players)
+        //    {
+        //        try
+        //        {
+        //            player_conn.Value.render();
+        //        }
+        //        catch (Exception e)
+        //        {
+        //            Console.WriteLine("Exception: {0}", e.ToString());
+        //        }
+        //    }
+        game_client.update(time_stamp);
         game_client.render();
-        presentScreen(JsRuntime, ray_tracer.frameBuffer);
+        presentScreen(JsRuntime, ray_tracer.frame_buffer);
+        //}
     }
 
     [JSInvokable]

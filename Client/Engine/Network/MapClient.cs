@@ -15,6 +15,7 @@ namespace dfe.Client.Engine.Network
 
         public HubConnection map_hub_conn;
 
+        // TODO: Refactor this out
         public Map level_map;
 
         public MapClient(HubConnection new_hub_conn)
@@ -24,7 +25,10 @@ namespace dfe.Client.Engine.Network
             map_hub_conn.On<Map>("receiveMap", (data) =>
             {
                 level_map = new Map(data);
-                foreach (texture tex in level_map.textures)
+
+                GameClient.game_state.setMap(level_map);
+
+                foreach (Texture tex in level_map.textures)
                 {
                     map_hub_conn.SendAsync("getTexture", tex.id);
                 }
@@ -46,7 +50,7 @@ namespace dfe.Client.Engine.Network
 
             map_hub_conn.On<int, byte[]>("receiveTexture", (texture_id, texture_bytes) =>
             {
-                level_map.textures[texture_id].pb_data = new PixelBuffer(64, 64);
+                level_map.textures[texture_id].pixelBuffer = new PixelBuffer(64, 64);
 
                 byte[] resized = new byte[64 * 64 * 4];
                 // Covert to 4 bytes per pixel
@@ -62,7 +66,7 @@ namespace dfe.Client.Engine.Network
                     dst += 4;
                 }
 
-                level_map.textures[texture_id].pb_data.pixels = resized;
+                level_map.textures[texture_id].pixelBuffer.pixels = resized;
 
                 level_map.initMap();
             });

@@ -18,13 +18,6 @@ namespace dfe.Shared
         public PixelBuffer pb_data { get; set; }
     }
 
-    public class texture
-    {
-        public int id { get; set; }
-        public string file { get; set; }
-        public PixelBuffer pb_data { get; set; }
-    }
-
     public class actor
     {
         public int type { get; set; }
@@ -32,18 +25,15 @@ namespace dfe.Shared
         public Vector2 position { get; set; }
     }
 
-    public class Map : IRender
+    public class Map
     {
-        public static Map current;
-
         public static bool loaded = false;
-
         public int width;
         public int height;
-        public float[] walls { get; set; }
+        public int[] walls { get; set; }
         public string name { get; set; }
         public sprite[] sprites { get; set; }
-        public texture[] textures { get; set; }
+        public Texture[] textures { get; set; }
         public Entity[] entities { get; set; }
         public Mob[] mobs { get; set; }
 
@@ -83,30 +73,13 @@ namespace dfe.Shared
             foreach (Entity ent in this.entities)
             {
                 ent.sprite = this.sprites[ent.sprite_id].pb_data;
-                ent.position = new Vector2(ent.coord.X, ent.coord.Y);
+                ent.position = new Coord(ent.position.X, ent.position.Y);
             }
 
             foreach (Mob mob in this.mobs)
             {
                 mob.sprite = this.sprites[mob.sprite_id].pb_data;
-                mob.position = new Vector2(mob.coord.X, mob.coord.Y);
-            }
-        }
-
-        public void render()
-        {
-            IRender render = this;
-            render.renderMap(this);
-
-            foreach (Entity ent in entities)
-            {
-                ent.render();
-            }
-
-            foreach (Mob mob in mobs)
-            {
-                mob.render();
-                
+                mob.position = new Coord(mob.position.X, mob.position.Y);
             }
         }
 
@@ -114,7 +87,7 @@ namespace dfe.Shared
         {
             this.width = width;
             this.height = height;
-            this.walls = new float[this.width * this.height];
+            this.walls = new int[this.width * this.height];
 
             this.name = "Generated Map";
 
@@ -170,14 +143,14 @@ namespace dfe.Shared
 
         public void loadTextures()
         {
-            foreach (texture tex in this.textures)
+            foreach (Texture tex in this.textures)
             {
                 string file_path = "Assets/Textures/" + tex.file;
                 if (File.Exists(file_path))
                 {
-                    tex.pb_data = new PixelBuffer(64, 64);
+                    tex.pixelBuffer = new PixelBuffer(64, 64);
 
-                    tex.pb_data.pixels = loadImage(file_path);
+                    tex.pixelBuffer.pixels = loadImage(file_path);
                 }
             }
 
@@ -206,9 +179,14 @@ namespace dfe.Shared
             }
         }
 
-        public texture getWallTexture(int id)
+        public Texture getWallTexture(int id)
         {
             return textures[id];
+        }
+
+        public override string ToString()
+        {
+            return "W:" + width + " H:" + height + " Walls:" + walls.Length;
         }
     }
 }
