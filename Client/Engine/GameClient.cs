@@ -126,16 +126,16 @@ namespace dfe.Client.Engine
                     switch(kbe_args.Key)
                     {
                         case "w":
-                            ray_tracer.input.u = false;
+                            game_sim.input_state.u = false;
                             break;
                         case "s":
-                            ray_tracer.input.d = false;
+                            game_sim.input_state.d = false;
                             break;
                         case "a":
-                            ray_tracer.input.l = false;
+                            game_sim.input_state.l = false;
                             break;
                         case "d":
-                            ray_tracer.input.r = false;
+                            game_sim.input_state.r = false;
                             break;
                         default:
                             break;
@@ -145,16 +145,16 @@ namespace dfe.Client.Engine
                     switch (kbe_args.Key)
                     {
                         case "w":
-                            ray_tracer.input.u = true;
+                            game_sim.input_state.u = true;
                             break;
                         case "s":
-                            ray_tracer.input.d = true;
+                            game_sim.input_state.d = true;
                             break;
                         case "a":
-                            ray_tracer.input.l = true;
+                            game_sim.input_state.l = true;
                             break;
                         case "d":
-                            ray_tracer.input.r = true;
+                            game_sim.input_state.r = true;
                             break;
                         default:
                             break;
@@ -170,7 +170,7 @@ namespace dfe.Client.Engine
         public async void handleMouseInput(MouseEventArgs me_args)
         {
             float x = await JsRuntime.InvokeAsync<float>("pollMouse");
-            ray_tracer.input.mouseDelta = x;
+            game_sim.input_state.mouseDelta = x;
         }
 
     }
