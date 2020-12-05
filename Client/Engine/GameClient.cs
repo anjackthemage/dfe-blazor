@@ -2,7 +2,9 @@
 using dfe.Shared.Entities;
 using dfe.Shared.Render;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.JSInterop;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,8 +22,7 @@ namespace dfe.Client.Engine
         // Handles high level rendering procedures.
         public static Renderer renderer;
 
-        [Inject]
-        public NavigationManager NavigationManager { get; set; }
+        public IJSRuntime JsRuntime;
 
         private HubConnection chat_hub_conn;
         private HubConnection map_hub_conn;
@@ -75,12 +76,8 @@ namespace dfe.Client.Engine
             //}
         }
 
-        private async Task doGameLoop()
+        public async Task doGameLoop()
         {
-
-            if (PlayerClient.b_is_player_registered)
-            {
-            }
             while (b_is_running)
             {
                 
@@ -120,5 +117,61 @@ namespace dfe.Client.Engine
                 lastTime = time;
             }
         }
+
+        public void handleKeyboardInput(KeyboardEventArgs kbe_args)
+        {
+            switch(kbe_args.Type)
+            {
+                case "keyup":
+                    switch(kbe_args.Key)
+                    {
+                        case "w":
+                            ray_tracer.input.u = false;
+                            break;
+                        case "s":
+                            ray_tracer.input.d = false;
+                            break;
+                        case "a":
+                            ray_tracer.input.l = false;
+                            break;
+                        case "d":
+                            ray_tracer.input.r = false;
+                            break;
+                        default:
+                            break;
+                    }
+                    break;
+                case "keydown":
+                    switch (kbe_args.Key)
+                    {
+                        case "w":
+                            ray_tracer.input.u = true;
+                            break;
+                        case "s":
+                            ray_tracer.input.d = true;
+                            break;
+                        case "a":
+                            ray_tracer.input.l = true;
+                            break;
+                        case "d":
+                            ray_tracer.input.r = true;
+                            break;
+                        default:
+                            break;
+                    }
+                    break;
+                default:
+                    Console.WriteLine("Unhandled KeyboardEventArgs.Type: {0}", kbe_args.Type);
+                    break;
+            }
+        }
+
+        
+        public async void handleMouseInput(MouseEventArgs me_args)
+        {
+            float x = await JsRuntime.InvokeAsync<float>("pollMouse");
+            ray_tracer.input.mouseDelta = x;
+        }
+
     }
 }

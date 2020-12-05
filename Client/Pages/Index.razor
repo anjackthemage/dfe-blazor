@@ -16,10 +16,10 @@
     <div>
         <canvas tabindex="0" id="game_canvas" width="640" height="480"
                 @ref="render_canvas"
-                @onkeydown="handleKeyDown"
-                @onkeyup="handleKeyUp"
+                @onkeydown="handleKbInput"
+                @onkeyup="handleKbInput"
                 @onpointerdown="handlePointerDown"
-                @onmousemove="handleMouse">
+                @onmousemove="handleMouseInput">
         </canvas>
     </div>
     <div hidden="@b_is_game_started">
@@ -76,16 +76,11 @@
 
     public bool isConnected;
 
-    // network
-    private HubConnection chat_hub_conn;
-    private HubConnection map_hub_conn;
-    private HubConnection player_hub_conn;
 
-    private GameClient game_client;
-    //private ChatClient chat_client;
-    //private MapClient map_client;
-    //private PlayerClient player_client;
-    private Renderer ray_tracer;
+    Action<KeyboardEventArgs> handleKbInput;
+    Action<MouseEventArgs> handleMouseInput;
+
+    private static GameClient game_client;
 
     private List<string> messages = new List<string>();
     private string user_input;
@@ -96,27 +91,16 @@
     protected override async Task OnInitializedAsync()
     {
 
+
         Uri player_hub_uri = NavigationManager.ToAbsoluteUri("/playerhub");
         Uri map_hub_uri = NavigationManager.ToAbsoluteUri("/maphub");
         Uri chat_hub_uri = NavigationManager.ToAbsoluteUri("/chathub");
 
         game_client = new GameClient(player_hub_uri, map_hub_uri, chat_hub_uri);
-        ray_tracer = GameClient.renderer;
-
-        // TODO: don't start gameloop until player registration is complete
-        // TODO: also, we should probably keep map and chat hidden until we successfully register with server
-
-        //player_client = new PlayerClient(player_hub_conn);
-
-        //map_client = new MapClient(map_hub_conn);
-        //map_client.ray_tracer = ray_tracer;
-        //map_client.loadMapFromServer();
-
-        //chat_client = new ChatClient(chat_hub_conn);
-        //chat_client.onChatUpdated += refreshMessages;
-
-        //await player_hub_conn.SendAsync("registerPlayerConnection", "TestPlayer", ray_tracer.self);
-
+        game_client.JsRuntime = JsRuntime;
+      
+        this.handleKbInput = game_client.handleKeyboardInput;
+        this.handleMouseInput = game_client.handleMouseInput;
         await base.OnInitializedAsync();
     }
 
@@ -185,66 +169,11 @@
     }
 
     [JSInvokable]
-    public void handleKeyUp(KeyboardEventArgs ke_args)
-    {
-        ClientSimulation sim = GameClient.game_sim;
-        string key = ke_args.Key;
-        switch (key)
-        {
-            case "w":
-                sim.input_state.u = false;
-                break;
-            case "s":
-                sim.input_state.d = false;
-                break;
-            case "a":
-                sim.input_state.l = false;
-                break;
-            case "d":
-                sim.input_state.r = false;
-                break;
-            default:
-                break;
-        }
-    }
-
-    [JSInvokable]
-    public void handleKeyDown(KeyboardEventArgs ke_args)
-    {
-        ClientSimulation sim = GameClient.game_sim;
-        string key = ke_args.Key;
-        switch (key)
-        {
-            case "w":
-                sim.input_state.u = true;
-                break;
-            case "s":
-                sim.input_state.d = true;
-                break;
-            case "a":
-                sim.input_state.l = true;
-                break;
-            case "d":
-                sim.input_state.r = true;
-                break;
-            default:
-                break;
-        }
-    }
-
-    [JSInvokable]
-    public async void handleMouse()
-    {
-        float x = await JsRuntime.InvokeAsync<float>("pollMouse");
-        ClientSimulation sim = GameClient.game_sim;
-        sim.input_state.mouseDelta = x;
-    }
-
-    [JSInvokable]
     public async void handlePointerDown(PointerEventArgs pe_args)
     {
         await JsRuntime.InvokeVoidAsync("captureMouse", render_canvas, pe_args.PointerId);
     }
+
     // Chat Begin
 
     public async Task sendMsg()
