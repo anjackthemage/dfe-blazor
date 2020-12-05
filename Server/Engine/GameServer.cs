@@ -2,8 +2,10 @@
 using dfe.Shared.Render;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
+using dfe.Server.Services;
+using Microsoft.AspNetCore.Components.Server.Circuits;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace dfe.Server.Engine
 {
@@ -35,20 +37,23 @@ namespace dfe.Server.Engine
 
         private async Task doGameLoop()
         {
-            // This will hold all of the simulate tasks we're about to create
-            Task[] zone_sims = new Task[world.Count];
-
-            // Call `simulation` code on each zone in world:
-            foreach (KeyValuePair<int, Zone> element in world)
+            while (b_is_running)
             {
-                Task zone_sim_task = element.Value.simulate();  // assign task
-                zone_sims[element.Key] = zone_sim_task;         // put task in array
+                // This will hold all of the simulate tasks we're about to create
+                Task[] zone_sims = new Task[world.Count];
+
+                // Call `simulation` code on each zone in world:
+                foreach (KeyValuePair<int, Zone> element in world)
+                {
+                    Task zone_sim_task = element.Value.simulate();  // assign task
+                    zone_sims[element.Key] = zone_sim_task;         // put task in array
+                }
+
+                Task.WhenAll(zone_sims); // Wait for all tasks to complete before releasing thread
+
+                // Pause execution on this thread to let main thread process for a bit
+                await Task.Delay(1000);
             }
-
-            Task.WhenAll(zone_sims); // Wait for all tasks to complete before releasing thread
-
-            // Pause execution on this thread to let main thread process for a bit
-            Task.Delay(1000);
         }
     }
 }
