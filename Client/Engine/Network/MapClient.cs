@@ -25,8 +25,8 @@ namespace dfe.Client.Engine.Network
             map_hub_conn.On<Map>("receiveMap", (data) =>
             {
                 level_map = new Map(data);
-                
-                GameClient.game_state.map = level_map;
+
+                GameClient.game_state.setMap(level_map);
 
                 foreach (Texture tex in level_map.textures)
                 {

@@ -30,7 +30,7 @@ namespace dfe.Shared.Entities
 
         public void update(float time, InputState input_state)
         {
-            float velocity = 0.5f * time;
+            float velocity = 32 * time;
             if (input_state.u == true)
             {
                 walk(velocity);

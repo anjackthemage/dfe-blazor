@@ -5,14 +5,17 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR;
 using dfe.Shared;
 using System.IO;
+using dfe.Server.Engine;
 
 namespace dfe.Server.Hubs
 {
     public class MapHub : Hub
     {
+        
         public async Task getMap()
         {
-            await Clients.Caller.SendAsync("receiveMap", Map.current);
+            Map map = GameServer.server.world[0].map;
+            await Clients.Caller.SendAsync("receiveMap", map);
         }
 
         public async Task getImage(string image_name)
@@ -30,7 +33,7 @@ namespace dfe.Server.Hubs
         {
             byte[] sprite_bytes = null;
 
-            string file_path = "Assets/Sprites/" + Map.current.sprites[sprite_id].file;
+            string file_path = "Assets/Sprites/" + GameServer.server.sprite_assets[sprite_id].file;
 
             if (File.Exists(file_path))
             {
@@ -49,7 +52,7 @@ namespace dfe.Server.Hubs
         {
             byte[] texture_bytes = null;
 
-            string file_path = "Assets/Textures/" + Map.current.textures[texture_id].file;
+            string file_path = "Assets/Textures/" + GameServer.server.texture_assets[texture_id].file;
 
             if (File.Exists(file_path))
             {

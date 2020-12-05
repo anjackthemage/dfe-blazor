@@ -49,5 +49,10 @@ namespace dfe.Shared.Entities
         {
             
         }
+        public void update(float time)
+        {
+
+        }
+
     }
 }

@@ -45,7 +45,6 @@ namespace dfe.Shared.Render
         {
             x = position.X;
             y = position.Y;
-            Console.WriteLine("X:" + x + " : Y" + y);
         }
     }
 }

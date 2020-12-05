@@ -27,13 +27,10 @@ namespace dfe.Shared
 
     public class Map
     {
-        public static Map current;
-
         public static bool loaded = false;
-
         public int width;
         public int height;
-        public float[] walls { get; set; }
+        public int[] walls { get; set; }
         public string name { get; set; }
         public sprite[] sprites { get; set; }
         public Texture[] textures { get; set; }
@@ -90,7 +87,7 @@ namespace dfe.Shared
         {
             this.width = width;
             this.height = height;
-            this.walls = new float[this.width * this.height];
+            this.walls = new int[this.width * this.height];
 
             this.name = "Generated Map";
 
@@ -185,6 +182,11 @@ namespace dfe.Shared
         public Texture getWallTexture(int id)
         {
             return textures[id];
+        }
+
+        public override string ToString()
+        {
+            return "W:" + width + " H:" + height + " Walls:" + walls.Length;
         }
     }
 }

@@ -12,7 +12,7 @@ namespace dfe.Shared.Entities
     public class Mob : Entity
     {
         public static readonly Vector2 RIGHT = new Vector2(1.0f, 0.0f); // new vector(1, 0);
-        
+
         // Heading of this mob - Should always be normalized.
         public Vector2 heading;
         public float angle;
@@ -84,10 +84,6 @@ namespace dfe.Shared.Entities
         {
             position.X += (-heading.Y * distance);
             position.Y += (heading.X * distance);
-        }
-        public void updatePosition()
-        {
-            // Assuming this is for velocity in the future? :3
         }
     }
 }

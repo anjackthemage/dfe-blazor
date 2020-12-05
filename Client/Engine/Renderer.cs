@@ -18,7 +18,7 @@ namespace dfe.Client.Engine
         public const float GRID_X = 16;
         public const float GRID_Y = 16;
         // The framebuffer to be displayed to the user.
-        public PixelBuffer frameBuffer;
+        public PixelBuffer frame_buffer;
         // Ray Data Array
         public RayData[] ray_buffer;
         // Texture cache for rendering.
@@ -29,7 +29,7 @@ namespace dfe.Client.Engine
         public Renderer(int screenWidth, int screenHeight)
         {
             camera = new Camera(GRID_X, GRID_Y, screenWidth, screenHeight, (float)Math.PI / 2.8f);
-            frameBuffer = new PixelBuffer(screenWidth, screenHeight);
+            frame_buffer = new PixelBuffer(screenWidth, screenHeight);
 
             // Generate placeholder texture
             textures = new Dictionary<int, PixelBuffer>();
@@ -63,45 +63,25 @@ namespace dfe.Client.Engine
             renderFloor();
 
             Map map = GameClient.game_state.map;
-            if (map != null)
-            {
-                ray_buffer = buildRayBuffer(map);
-                renderWalls(map);
-            }
+            ray_buffer = buildRayBuffer(camera, map);
+            renderWalls(map);
         }
-
-        /// <summary>
-        /// Render the current Level
-        /// </summary>
-        /// <param name="level_map">The map to perform raytracing against.</param>
-        public void renderLevel(Map level_map)
+        public bool once;
+        public RayData[] buildRayBuffer(Camera cam, Map level_map)
         {
-            ray_buffer = buildRayBuffer(level_map);
-            renderFloor();
-            renderCeiling();
-            renderWalls(level_map);
-            renderSprites();
-            Render.rectDepth(frameBuffer, 80, 2, 128, 64, ray_buffer);
-        }
+            float ang_step = cam.fov / cam.view_cols;
+            float ray_angle = cam.view_angle - (cam.fov / 2);
+            float ang_diff = -(cam.fov / 2);
 
-        public RayData[] buildRayBuffer(Map level_map)
-        {
-            // Lazy init of the ray_buffer
-            if (ray_buffer == null)
-                ray_buffer = new RayData[camera.view_cols];
-
-            float ang_step = camera.fov / camera.view_cols;
-            float ray_angle = camera.view_angle - (camera.fov / 2);
-            float ang_diff = -(camera.fov / 2);
-
-            for (int index = 0; index < camera.view_cols; index++)
+            for (int index = 0; index < cam.view_cols; index++)
             {
-                rayCast(camera, ray_angle, level_map, ray_buffer[index]);
+                rayCast(cam, ray_angle, level_map, ray_buffer[index]);
                 // Dewarp
                 ray_buffer[index].dis = ray_buffer[index].dis * (float)Math.Cos(ang_diff);
                 ray_angle += ang_step;
                 ang_diff += ang_step;
             }
+
             return ray_buffer;
         }
         public void renderFloor()
@@ -113,9 +93,9 @@ namespace dfe.Client.Engine
                 float obsY = -camera.y / camera.grid_y;
                 RayData leftAngles = ray_buffer[0];
                 RayData rightAngles = ray_buffer[ray_buffer.Length - 1];
-                for (int screenY = frameBuffer.height / 2; screenY < frameBuffer.height; screenY++)
+                for (int screenY = frame_buffer.height / 2; screenY < frame_buffer.height; screenY++)
                 {
-                    Render.floor(frameBuffer, screenY, 1, obsX, obsY, leftAngles, rightAngles, tex);
+                    Render.floor(frame_buffer, screenY, 1, obsX, obsY, leftAngles, rightAngles, tex);
 
                 }
             } catch (Exception e)
@@ -128,10 +108,10 @@ namespace dfe.Client.Engine
         {
             Rgba ceilColor = new Rgba(0x60, 0x20, 0x00);
             float dchange = 1 / 15f;
-            float distance = (frameBuffer.height / 2) * dchange;
-            for (int y = frameBuffer.height / 2; y >= 0; y--)
+            float distance = (frame_buffer.height / 2) * dchange;
+            for (int y = frame_buffer.height / 2; y >= 0; y--)
             {
-                Render.floor(frameBuffer, y, distance, ceilColor, ceilColor);
+                Render.floor(frame_buffer, y, distance, ceilColor, ceilColor);
                 distance -= dchange;
             }
         }
@@ -149,10 +129,10 @@ namespace dfe.Client.Engine
 
 
             //OPTI: Math.Tan(fov / 2) is a constant that only needs to be calculated once.
-            float viewAdjacent = (float)(frameBuffer.width / 2) / (float)Math.Tan(camera.fov / 2);
+            float viewAdjacent = (float)(frame_buffer.width / 2) / (float)Math.Tan(camera.fov / 2);
             int screenX = (int)((sy / sx) * viewAdjacent);
 
-            Render.sprite(frameBuffer, (int)screenX + (frameBuffer.width / 2), sx, ray_buffer, ent_to_render.sprite);
+            Render.sprite(frame_buffer, (int)screenX + (frame_buffer.width / 2), sx, ray_buffer, ent_to_render.sprite);
             
         }
 
@@ -197,7 +177,7 @@ namespace dfe.Client.Engine
         public void renderWalls(Map level_map)
         {
             RayData ray;
-            for (int x = 0; x < frameBuffer.width; x++)
+            for (int x = 0; x < frame_buffer.width; x++)
             {
                 ray = ray_buffer[x];
                 // TODO: Cleanup this little code block.
@@ -205,11 +185,8 @@ namespace dfe.Client.Engine
                 if (texBuffer == null)
                     texBuffer = textures[0];
 
-                if (level_map.textures[ray.wallId].pixelBuffer != null)
-                {
-                    texBuffer = level_map.textures[ray.wallId].pixelBuffer;
-                    Render.wallColumn(frameBuffer, x, 1, ray_buffer[x].dis, ray_buffer[x].texOfs, texBuffer, new Rgba(0x0, 0x80,0xFF, 0x08));
-                }
+                Render.wallColumn(frame_buffer, x, 1, ray_buffer[x].dis, ray_buffer[x].texOfs, texBuffer, new Rgba(0x0, 0x80,0xFF, 0x08));
+                //Render.wallColumn(frame_buffer, x, ray_buffer[x].dis, new Rgba(0x00, 0x40, 0x80, 0xC0));
             }
         }
         public RayData rayCast(Camera camera, float ang, Map level_map, RayData hit)

@@ -178,8 +178,9 @@
         //            Console.WriteLine("Exception: {0}", e.ToString());
         //        }
         //    }
+        game_client.update(time_stamp);
         game_client.render();
-        presentScreen(JsRuntime, ray_tracer.frameBuffer);
+        presentScreen(JsRuntime, ray_tracer.frame_buffer);
         //}
     }
 

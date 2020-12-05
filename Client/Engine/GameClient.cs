@@ -12,7 +12,6 @@ namespace dfe.Client.Engine
 {
     public class GameClient
     {
-
         public static GameClient client;
         // Game logic, used for updating things in a ClientState
         public static ClientSimulation game_sim;
@@ -90,7 +89,6 @@ namespace dfe.Client.Engine
 
         public async Task render()
         {
-            game_sim.process(1, game_state);
             renderer.render();
             
             // TODO: Move these calls to PlayerClient, don't call updateConnectedPlayers every frame.
@@ -110,6 +108,17 @@ namespace dfe.Client.Engine
             }
 
             // presentScreen(JsRuntime, ray_tracer.frameBuffer);
+        }
+        public static double lastTime = 0;
+        public async Task update(double time)
+        {
+            double deltaTime = time - lastTime;
+            deltaTime = deltaTime / 1000; // Milliseconds to Seconds
+            if (deltaTime >= (1f / 60f))
+            {
+                game_sim.process((float)deltaTime, game_state);
+                lastTime = time;
+            }
         }
     }
 }
