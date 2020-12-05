@@ -235,7 +235,8 @@
     public async void handleMouse()
     {
         float x = await JsRuntime.InvokeAsync<float>("pollMouse");
-        //ray_tracer.input.mouseDelta = x;
+        ClientSimulation sim = GameClient.game_sim;
+        sim.input_state.mouseDelta = x;
     }
 
     [JSInvokable]

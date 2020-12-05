@@ -11,9 +11,6 @@ namespace dfe.Shared.Entities
 {
     public class Player : Mob
     {
-        // For client-side, this is where we will store the local player, server can ignore this
-        public static Player local;
-
         [JsonInclude]
         public String player_name;
 
@@ -21,6 +18,7 @@ namespace dfe.Shared.Entities
         {
 
         }
+
         public Player(float x_initial, float y_initial, float angle_initial)
         {
             this.position = new Coord(x_initial, y_initial);
@@ -54,7 +52,6 @@ namespace dfe.Shared.Entities
             if (input_state.mouseDelta != 0)
             {
                 rotate(input_state.mouseDelta / 64);
-                input_state.mouseDelta = 0;
             }
         }
     }

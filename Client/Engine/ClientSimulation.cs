@@ -18,6 +18,7 @@ namespace dfe.Client.Engine
         {
             // Very basic input handling.
             state.player.update(time, input_state);
+            input_state.mouseDelta = 0;
         } 
     }
 }
