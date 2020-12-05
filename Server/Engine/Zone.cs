@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using dfe.Shared;
 using dfe.Shared.Entities;
 
@@ -25,6 +26,17 @@ namespace dfe.Server.Engine
             // Default zone settings.
             // Generate a template map.
             map = new Map("level_test");
+        }
+
+        /// <summary>
+        /// Function to handle processing non-render calculations for each object in this zone.
+        /// </summary>
+        public async Task simulate()
+        {
+            // Cycle through all the mobs and ents in the map
+            //      process movement
+            //      process ai
+            //      process environmental effects?
         }
     }
 }
