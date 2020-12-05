@@ -1,18 +1,11 @@
-﻿//using Microsoft.AspNetCore.Components;
-//using Microsoft.JSInterop;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Numerics;
-//using System.Collections.Generic;
-//using System.Linq;
-//using System.Threading.Tasks;
 using dfe.Shared;
 using dfe.Shared.Render;
 using dfe.Shared.Entities;
 
 namespace dfe.Client.Engine
 {
-
     public class Renderer
     {
         public const float GRID_X = 16;
