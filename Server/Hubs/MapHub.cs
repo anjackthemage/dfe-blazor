@@ -31,39 +31,44 @@ namespace dfe.Server.Hubs
 
         public async Task getSprite(int sprite_id)
         {
-            byte[] sprite_bytes = null;
-
-            string file_path = "Assets/Sprites/" + GameServer.server.sprite_assets[sprite_id].file;
-
-            if (File.Exists(file_path))
+            if (GameServer.server.sprite_assets.ContainsKey(sprite_id))
             {
-                sprite_bytes = loadImage(file_path);
-            }
-            else
-            {
-                Console.WriteLine("Sprite file not found: {0}", file_path);
-            }
+                byte[] sprite_bytes = null;
 
-            await Clients.Caller.SendAsync("receiveSprite", sprite_id, sprite_bytes);
+                string file_path = "Assets/Sprites/" + GameServer.server.sprite_assets[sprite_id].file;
 
+                if (File.Exists(file_path))
+                {
+                    sprite_bytes = loadImage(file_path);
+                }
+                else
+                {
+                    Console.WriteLine("Sprite file not found: {0}", file_path);
+                }
+
+                await Clients.Caller.SendAsync("receiveSprite", sprite_id, sprite_bytes);
+            }
         }
 
         public async Task getTexture(int texture_id)
         {
-            byte[] texture_bytes = null;
-
-            string file_path = "Assets/Textures/" + GameServer.server.texture_assets[texture_id].file;
-
-            if (File.Exists(file_path))
+            if (GameServer.server.texture_assets.ContainsKey(texture_id))
             {
-                texture_bytes = loadImage(file_path);
-            }
-            else
-            {
-                Console.WriteLine("Texture file not found: {0}", file_path);
-            }
+                byte[] texture_bytes = null;
 
-            await Clients.Caller.SendAsync("receiveTexture", texture_id, texture_bytes);
+                string file_path = "Assets/Textures/" + GameServer.server.texture_assets[texture_id].file;
+
+                if (File.Exists(file_path))
+                {
+                    texture_bytes = loadImage(file_path);
+                }
+                else
+                {
+                    Console.WriteLine("Texture file not found: {0}", file_path);
+                }
+
+                await Clients.Caller.SendAsync("receiveTexture", texture_id, texture_bytes);
+            }
         }
 
         public byte[] loadImage(string file_path)
