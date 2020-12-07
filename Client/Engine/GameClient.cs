@@ -63,7 +63,7 @@ namespace dfe.Client.Engine
             chat_client = new ChatClient(chat_hub_conn);
             //chat_client.onChatUpdated += refreshMessages;
 
-            player_hub_conn.SendAsync("registerPlayerConnection", "TestPlayer", game_state.player);
+            player_hub_conn.SendAsync("registerPlayerConnection", game_state.player);
 
 
 

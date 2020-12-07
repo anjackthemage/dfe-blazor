@@ -27,6 +27,12 @@ namespace dfe.Shared.Entities
             Y = y;
         }
 
+        // Override .ToString
+        public override string ToString()
+        {
+            return String.Format("X: {0}, Y: {1}", this.X, this.Y);
+        }
+
         // Override .Equals
         public override bool Equals(object obj)
         {

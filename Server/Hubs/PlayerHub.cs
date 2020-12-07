@@ -12,19 +12,17 @@ namespace dfe.Server.Hubs
 
         public static Dictionary<String, Player> connected_players = new Dictionary<string, Player>();
 
-        public async Task registerPlayerConnection(string player_name, Player player_ref)
+        public async Task registerPlayerConnection(Player player_ref)
         {
             Console.WriteLine("Registering client...");
-            //Context.ConnectionId
+
             Player temp_player = player_ref;
 
-            temp_player.player_name = player_name;
             temp_player.guid = Guid.NewGuid();
             // TODO: Check for reconnecting players an process accordingly
             if (!connected_players.ContainsKey(Context.ConnectionId))
             {
                 connected_players.Add(Context.ConnectionId, temp_player);
-
 
                 // TODO: Here we call the client and initiate map transfer.
                 await Clients.Client(Context.ConnectionId).SendAsync("receiveRegistrationResponse", true, temp_player.guid);
@@ -91,8 +89,8 @@ namespace dfe.Server.Hubs
             {
                 Console.WriteLine("Heartbeat: Out of sync: Bad position.");
 
-                Console.WriteLine("Player Position (server) X: {0}, Y: {1}", connected_players[Context.ConnectionId].position.X, connected_players[Context.ConnectionId].position.Y);
-                Console.WriteLine("Player Position (client) X: {0}, Y: {1}", connected_player.position.X, connected_player.position.Y);
+                Console.WriteLine("Player {0} Position (server): {1}", connected_players[Context.ConnectionId].player_name, connected_players[Context.ConnectionId].position.ToString());
+                Console.WriteLine("Player {0} Position (client): {1}", connected_player.player_name, connected_player.position.ToString());
                 // We're out of sync
                 // Send map data
             }

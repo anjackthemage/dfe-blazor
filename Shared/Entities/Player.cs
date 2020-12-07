@@ -12,7 +12,7 @@ namespace dfe.Shared.Entities
     public class Player : Mob
     {
         [JsonInclude]
-        public String player_name;
+        public String player_name = "Test Player";
 
         public Player()
         {
