@@ -27,7 +27,7 @@ namespace dfe.Shared.Render
         // Bool value stating whether this ray hit or not.
         public bool hit;
         // Texture index of hit.
-        public int wallId;
+        public int texture_id;
         // Texture offset where the hit occured.
         public float texOfs;
         // The distance, in map units, from the cast point.

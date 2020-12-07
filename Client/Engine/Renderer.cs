@@ -54,10 +54,10 @@ namespace dfe.Client.Engine
             camera.setPosition(state.player.position);
             camera.view_angle = state.player.angle;
 
-            renderCeiling();
-            renderFloor();
             Map map = GameClient.game_state.map;
             ray_buffer = buildRayBuffer(camera, map);
+            renderCeiling();
+            renderFloor();
             renderWalls(map);
 
             // Time to render sprites!
@@ -204,59 +204,6 @@ namespace dfe.Client.Engine
             }
         }
 
-        public void renderSprite(Entity ent_to_render)
-        {
-            //OPTI: This code section could benefit from using some fixed point integers instead of floats.
-            float nx = (float)Math.Cos(-camera.view_angle);
-            float ny = (float)Math.Sin(-camera.view_angle);
-
-            float tx = (ent_to_render.position.X - camera.x) / 16;
-            float ty = (ent_to_render.position.Y - camera.y) / 16;
-            float sx = ((tx * nx) - (ty * ny));
-            float sy = ((tx * ny) + (ty * nx));
-
-
-            //OPTI: Math.Tan(fov / 2) is a constant that only needs to be calculated once.
-            float viewAdjacent = (float)(frame_buffer.width / 2) / (float)Math.Tan(camera.fov / 2);
-            int screenX = (int)((sy / sx) * viewAdjacent);
-
-            Render.sprite(frame_buffer, (int)screenX + (frame_buffer.width / 2), sx, ray_buffer, ent_to_render.sprite);
-            //Render.sprite(frame_buffer, (int)screenX + (frame_buffer.width / 2), 1, sx, ray_buffer, sdef);
-        }
-
-        public void renderSprites()
-        {
-            // Sort sprites from furthest to closest.
-
-            // Translate the sprites to screen space.
-
-
-            //OPTI: This code section could benefit from using some fixed point integers instead of floats.
-            
-            //float nx = (float)Math.Cos(-self.angle);
-            //float ny = (float)Math.Sin(-self.angle);
-            
-            //float tx = (testSprite.position.X - self.position.X) / 16;
-            //float ty = (testSprite.position.Y - self.position.Y) / 16;
-            //float sx = ((tx * nx) - (ty * ny));
-            //float sy = ((tx * ny) + (ty * nx));
-
-            // Debug Drawing 
-            // ---
-            // frameBuffer.DrawPoint((int)tx + (frameBuffer.width / 2), ((int)-ty + frameBuffer.height / 2), 255, 0, 255);
-            // frameBuffer.DrawPoint((int)sx + (frameBuffer.width / 2), ((int)-sy + frameBuffer.height / 2), 0, 255, 0);
-            // frameBuffer.DrawPoint(frameBuffer.width / 2, frameBuffer.height / 2, 255, 255, 255);
-            // ---
-
-            //OPTI: Math.Tan(fov / 2) is a constant that only needs to be calculated once.
-            //float viewAdjacent = (float)(frameBuffer.width / 2) / (float)Math.Tan(camera.fov / 2);
-            //int screenX = (int)((sy / sx) * viewAdjacent);
-
-            //float screenX = (float)((sy * (frameBuffer.width >> 1)) / (Math.Tan(fov / 2)));
-            //int screenX = (int)((Math.Tan(fov / 2) * sy) * (frameBuffer.width / 2));
-            //Render.sprite(frameBuffer, (int)screenX + (frameBuffer.width / 2), 8, sx, ray_buffer, textures[0]);
-        }
-
         /// <summary>
         /// renderCols()
         /// 
@@ -268,13 +215,13 @@ namespace dfe.Client.Engine
             for (int x = 0; x < frame_buffer.width; x++)
             {
                 ray = ray_buffer[x];
-                // TODO: Cleanup this little code block.
-                PixelBuffer texBuffer = null;
-                if (texBuffer == null)
-                    texBuffer = textures[0];
-
-                Render.wallColumn(frame_buffer, x, 1, ray_buffer[x].dis, ray_buffer[x].texOfs, texBuffer, new Rgba(0x0, 0x80,0xFF, 0x08));
-                //Render.wallColumn(frame_buffer, x, ray_buffer[x].dis, new Rgba(0x00, 0x40, 0x80, 0xC0));
+                PixelBuffer buffer = textures[0];
+                if (textures.TryGetValue(ray.texture_id, out buffer) == true)
+                {
+                    Render.wallColumn(frame_buffer, x, 1, ray.dis, ray.texOfs, buffer, new Rgba(0x0, 0x80, 0xFF, 0x08));
+                }  else  {
+                    Render.wallColumn(frame_buffer, x, 1, ray.dis, ray.texOfs, textures[0], new Rgba(0x0, 0x80, 0xFF, 0x08));
+                }
             }
         }
         public RayData rayCast(Camera camera, float ang, Map level_map, RayData hit)
@@ -353,7 +300,7 @@ namespace dfe.Client.Engine
                 }
                 if (level_map.walls[mx + (my * level_map.width)] > 0)
                 {
-                    hit.wallId = (int)level_map.walls[mx + (my * level_map.width)];
+                    hit.texture_id = (int)level_map.walls[mx + (my * level_map.width)];
                     hit.map_x = mx;
                     hit.map_y = my;
                     hit.hit = true;
