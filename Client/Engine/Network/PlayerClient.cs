@@ -32,8 +32,8 @@ namespace dfe.Client.Engine.Network
                 {
 
 
-                    b_is_player_registered = true;
                     GameClient.game_state.player.guid = local_player_guid;
+                    b_is_player_registered = true;
 
 
                 }
@@ -85,8 +85,11 @@ namespace dfe.Client.Engine.Network
 
             player_hub_conn.On("doHeartbeat", () =>
             {
-                Console.WriteLine("Heartbeat!");
-                player_hub_conn.SendAsync("receivePlayerHeartbeat", GameClient.game_state.player);
+                if (b_is_player_registered)
+                {
+                    Console.WriteLine("Heartbeat!");
+                    player_hub_conn.SendAsync("receivePlayerHeartbeat", GameClient.game_state.player);
+                }
             });
 
             player_hub_conn.StartAsync();

@@ -90,7 +90,7 @@ namespace dfe.Client.Engine
             
             // TODO: Move these calls to PlayerClient, don't call updateConnectedPlayers every frame.
             player_hub_conn.SendAsync("updateConnectedPlayers");
-            player_hub_conn.SendAsync("updatePlayerPosition", game_state.player);
+            player_hub_conn.SendAsync("updatePlayerPosition", game_state.player.position);
 
             foreach (KeyValuePair<Guid, Player> player_conn in player_client.connected_players)
             {

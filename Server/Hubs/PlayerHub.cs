@@ -17,13 +17,13 @@ namespace dfe.Server.Hubs
             Console.WriteLine("Registering client...");
 
             Player temp_player = player_ref;
-
+            
             temp_player.guid = Guid.NewGuid();
             // TODO: Check for reconnecting players an process accordingly
             if (!connected_players.ContainsKey(Context.ConnectionId))
             {
                 connected_players.Add(Context.ConnectionId, temp_player);
-
+                Console.WriteLine(connected_players[Context.ConnectionId].position.ToString());
                 // TODO: Here we call the client and initiate map transfer.
                 await Clients.Client(Context.ConnectionId).SendAsync("receiveRegistrationResponse", true, temp_player.guid);
                 Console.WriteLine("Connected clients: {0}", connected_players.Count);
@@ -34,7 +34,6 @@ namespace dfe.Server.Hubs
 
         public async Task updateConnectedPlayers()
         {
-
             await Clients.All.SendAsync("updateConnectedPlayers", connected_players.Values);
         }
 
@@ -47,8 +46,7 @@ namespace dfe.Server.Hubs
         public async Task updatePlayerPosition(Coord new_position)
         {
             Player temp_player = connected_players[Context.ConnectionId];
-            temp_player.position.X = new_position.X;
-            temp_player.position.Y = new_position.Y;
+
             temp_player.position.X = new_position.X;
             temp_player.position.Y = new_position.Y;
 
@@ -85,7 +83,7 @@ namespace dfe.Server.Hubs
                 // New player on same connection
                 // Force authentication
             }
-            else if( !connected_player.position.Equals(connected_players[Context.ConnectionId].position) )
+            else if( connected_player.position != connected_players[Context.ConnectionId].position )
             {
                 Console.WriteLine("Heartbeat: Out of sync: Bad position.");
 
