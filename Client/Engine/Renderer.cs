@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using dfe.Shared;
 using dfe.Shared.Render;
 using dfe.Shared.Entities;
+using System.Numerics;
 
 namespace dfe.Client.Engine
 {
@@ -14,6 +15,7 @@ namespace dfe.Client.Engine
         public PixelBuffer frame_buffer;
         // Ray Data Array
         public RayData[] ray_buffer;
+        
         // Texture cache for rendering.
         public Dictionary<int, PixelBuffer> textures;
         // The current viewpoint.
@@ -54,18 +56,105 @@ namespace dfe.Client.Engine
 
             renderCeiling();
             renderFloor();
-
             Map map = GameClient.game_state.map;
             ray_buffer = buildRayBuffer(camera, map);
             renderWalls(map);
-            testEnt = new Entity();
-            testEnt.position.X = 128;
-            testEnt.position.Y = 128;
 
-            renderSprite(testEnt);
+            // Time to render sprites!
+
+            // Culling pass
+            renderSprites(camera);
+            // Translation pass
+            // Draw all visible sprites.
+
         }
-        Entity testEnt;
-        public bool once;
+
+        public List<SpriteVis> sprite_vis;
+        public void renderSprites(Camera cam)
+        {
+            if (sprite_vis == null)
+                sprite_vis = new List<SpriteVis>();
+            sprite_vis.Clear();
+
+            // Setup culling space.
+
+
+            Coord origin = new Coord(cam.x, cam.y);
+            float angle = cam.view_angle - (cam.fov / 2);
+            Vector2 left = new Vector2((float)Math.Cos(angle), (float)Math.Sin(angle));
+            angle = cam.view_angle + (cam.fov / 2);
+            Vector2 right= new Vector2((float)Math.Cos(angle), (float)Math.Sin(angle));
+
+            int spritecount = 0;
+            int cullcount = 0;
+            // Cull all sprites out of the space.
+            ClientState state = GameClient.game_state;
+            foreach (Entity ent in state.local_props.Values)
+            {
+                spritecount++;
+                if (((left.X * (ent.position.Y - origin.Y)) - (left.Y * (ent.position.X - origin.X))) > 0
+                && ((right.X * (ent.position.Y - origin.Y)) - (right.Y * (ent.position.X - origin.X))) < 0)
+                {
+                    sprite_vis.Add(new SpriteVis(ent));
+                }
+                else
+                {
+                    cullcount++;
+                }
+            }
+
+            foreach (Entity ent in state.local_mobs.Values)
+            {
+                spritecount++;
+                if (((left.X * (ent.position.Y - origin.Y)) - (left.Y * (ent.position.X - origin.X))) > 0
+                && ((right.X * (ent.position.Y - origin.Y)) - (right.Y * (ent.position.X - origin.X))) < 0)
+                {
+                    sprite_vis.Add(new SpriteVis(ent));
+                }
+                else
+                {
+                    cullcount++;
+                }
+            }
+
+            // Perform translation calculations on the resulting list.
+            //OPTI: This code section could benefit from using some fixed point integers instead of floats.
+            float nx = (float)Math.Cos(-camera.view_angle);
+            float ny = (float)Math.Sin(-camera.view_angle);
+            foreach (SpriteVis spr_vis in sprite_vis)
+            {
+                float tx = (spr_vis.x - camera.x) / 16;
+                float ty = (spr_vis.y - camera.y) / 16;
+                float sx = ((tx * nx) - (ty * ny));
+                float sy = ((tx * ny) + (ty * nx));
+                //OPTI: Math.Tan(fov / 2) is a constant that only needs to be calculated once.
+                float viewAdjacent = (float)(frame_buffer.width / 2) / (float)Math.Tan(camera.fov / 2);
+                int screen_x = (int)((sy / sx) * viewAdjacent);
+                spr_vis.screen_x = screen_x;
+                spr_vis.distance = sx;
+            }
+
+            // Sort rendering order from back to front.
+            sprite_vis.Sort(delegate (SpriteVis a, SpriteVis b)
+            {
+                if (a.distance == b.distance) return 0;
+                else if (a.distance > b.distance) return -1;
+                else return 1;
+            });
+            // Render the list.
+            foreach (SpriteVis spr_vis in sprite_vis)
+            {
+                PixelBuffer buffer = textures[0];
+                if (textures.TryGetValue(spr_vis.sprite_id, out buffer) == true)
+                {
+                    Render.sprite(frame_buffer, (int)spr_vis.screen_x + (frame_buffer.width / 2), spr_vis.distance, ray_buffer, buffer);
+                } else {
+                    Render.sprite(frame_buffer, (int)spr_vis.screen_x + (frame_buffer.width / 2), spr_vis.distance, ray_buffer, textures[0]);
+                }
+            }
+
+        }
+
         public RayData[] buildRayBuffer(Camera cam, Map level_map)
         {
             float ang_step = cam.fov / cam.view_cols;

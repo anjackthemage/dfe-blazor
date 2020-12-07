@@ -3,7 +3,6 @@ using dfe.Shared.Render;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using dfe.Server.Services;
 using Microsoft.AspNetCore.Components.Server.Circuits;
 using Microsoft.Extensions.DependencyInjection;
 
