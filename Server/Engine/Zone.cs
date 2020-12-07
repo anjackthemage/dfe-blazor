@@ -37,7 +37,7 @@ namespace dfe.Server.Engine
             //      process movement
             //      process ai
             //      process environmental effects?
-            Console.WriteLine("Simulating zone: {0}", this.guid);
+            //Console.WriteLine("Simulating zone: {0}", this.guid);
         }
     }
 }

@@ -33,6 +33,7 @@ namespace dfe.Client.Engine.Network
 
 
                     b_is_player_registered = true;
+                    GameClient.game_state.player.guid = local_player_guid;
 
 
                 }
@@ -80,6 +81,12 @@ namespace dfe.Client.Engine.Network
                         connected_players[plyr_id].position.Y = position.Y;
                     }
                 }
+            });
+
+            player_hub_conn.On("doHeartbeat", () =>
+            {
+                Console.WriteLine("Heartbeat!");
+                player_hub_conn.SendAsync("receivePlayerHeartbeat", GameClient.game_state.player);
             });
 
             player_hub_conn.StartAsync();

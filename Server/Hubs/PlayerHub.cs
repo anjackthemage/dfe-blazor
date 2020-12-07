@@ -69,5 +69,38 @@ namespace dfe.Server.Hubs
 
             await Clients.All.SendAsync("updatePlayerPositions", player_locations);
         }
+
+        #region Heartbeat
+        public void initiateHeartbeat()
+        {
+            Clients.All.SendAsync("doHeartbeat");
+        }
+
+        public async Task receivePlayerHeartbeat(Player connected_player)
+        {
+            if( connected_player.guid != connected_players[Context.ConnectionId].guid )
+            {
+                Console.WriteLine("Heartbeat: Out of sync: Bad GUID");
+
+                Console.WriteLine("Player GUID (Server): {0}", connected_players[Context.ConnectionId].guid);
+                Console.WriteLine("Player GUID (Client): {0}", connected_player.guid);
+                // New player on same connection
+                // Force authentication
+            }
+            else if( !connected_player.position.Equals(connected_players[Context.ConnectionId].position) )
+            {
+                Console.WriteLine("Heartbeat: Out of sync: Bad position.");
+
+                Console.WriteLine("Player Position (server) X: {0}, Y: {1}", connected_players[Context.ConnectionId].position.X, connected_players[Context.ConnectionId].position.Y);
+                Console.WriteLine("Player Position (client) X: {0}, Y: {1}", connected_player.position.X, connected_player.position.Y);
+                // We're out of sync
+                // Send map data
+            }
+            else
+            {
+                Console.WriteLine("Heartbeat: N'sync.");
+            }
+        }
+        #endregion
     }
 }

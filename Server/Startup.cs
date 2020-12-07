@@ -9,6 +9,8 @@ using System.Linq;
 using dfe.Server.Hubs;
 using dfe.Shared;
 using dfe.Server.Engine;
+using dfe.Server.Services;
+using Microsoft.AspNetCore.Components.Server.Circuits;
 
 namespace dfe.Server
 {
@@ -17,7 +19,6 @@ namespace dfe.Server
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
-            GameServer.server = new GameServer();
         }
 
         public IConfiguration Configuration { get; }

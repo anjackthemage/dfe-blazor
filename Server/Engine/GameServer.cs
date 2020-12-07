@@ -4,8 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using dfe.Server.Services;
-using Microsoft.AspNetCore.Components.Server.Circuits;
-using Microsoft.Extensions.DependencyInjection;
+using dfe.Server.Hubs;
+using Microsoft.AspNetCore.SignalR;
 
 namespace dfe.Server.Engine
 {
@@ -13,6 +13,8 @@ namespace dfe.Server.Engine
     {
 
         public static GameServer server;
+
+        public IHubContext<PlayerHub> p_hub_ref;
 
         public static bool b_is_running { get; private set; }
 
@@ -49,7 +51,14 @@ namespace dfe.Server.Engine
                     zone_sims[element.Key] = zone_sim_task;         // put task in array
                 }
 
-                Task.WhenAll(zone_sims); // Wait for all tasks to complete before releasing thread
+                Task.WhenAll(zone_sims); // Wait for all zone sims to complete
+
+
+                // Initiate heartbeat via PlayerHub
+                if (p_hub_ref != null)
+                {
+                    p_hub_ref.Clients.All.SendAsync("doHeartbeat");
+                }
 
                 // Pause execution on this thread to let main thread process for a bit
                 await Task.Delay(1000);
