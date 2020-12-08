@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using dfe.Server.Services;
 using dfe.Server.Hubs;
 using Microsoft.AspNetCore.SignalR;
+using System.IO;
+using System.Text.Json;
 
 namespace dfe.Server.Engine
 {
@@ -33,6 +35,10 @@ namespace dfe.Server.Engine
 
             server = this;
             b_is_running = true;
+
+
+            loadAssetsFromFile("Assets/texture_directory.json", typeof(Texture));
+            loadAssetsFromFile("Assets/sprite_directory.json", typeof(sprite));
 
             doGameLoop();
         }
@@ -64,5 +70,74 @@ namespace dfe.Server.Engine
                 await Task.Delay(1000);
             }
         }
+
+
+        #region asset loading
+        public sprite[] local_sprites;
+        public Texture[] local_textures;
+
+        public byte[] loadImage(string file_path)
+        {
+            Stream image_fs = new FileStream(file_path, FileMode.Open, FileAccess.Read, FileShare.Read);
+            byte[] image_bytes = new byte[image_fs.Length];
+            image_fs.Read(image_bytes);
+
+            return image_bytes;
+        }
+
+        public void loadAssetsFromFile(string file_path, Type asset_type)
+        {
+            Console.WriteLine("Loading {0} assets from {1}", asset_type.ToString(), file_path);
+            if (File.Exists(file_path))
+            {
+                string json_str = File.ReadAllText(file_path);
+
+                if (asset_type == typeof(sprite))
+                {
+                    local_sprites = JsonSerializer.Deserialize<sprite[]>(json_str);
+                    loadAssets(ref local_sprites);
+                }
+                else if (asset_type == typeof(Texture))
+                {
+                    local_textures = JsonSerializer.Deserialize<Texture[]>(json_str);
+                    loadAssets(ref local_textures);
+                }
+            }
+            else
+            {
+                Console.WriteLine("File not found: {0}", file_path);
+            }
+        }
+
+        public Texture[] loadAssets(ref Texture[] textures)
+        {
+            foreach (Texture tex in textures)
+            {
+                string file_path = "Assets/Textures/" + tex.file;
+                if (File.Exists(file_path))
+                {
+                    tex.pixelBuffer = new PixelBuffer(64, 64);
+
+                    tex.pixelBuffer.pixels = loadImage(file_path);
+                }
+            }
+            return textures;
+        }
+
+        public sprite[] loadAssets(ref sprite[] sprites)
+        {
+            foreach (sprite spr in sprites)
+            {
+                string file_path = "Assets/Sprites/" + spr.file;
+                if (File.Exists(file_path))
+                {
+                    spr.pb_data = new PixelBuffer(16, 16);
+
+                    spr.pb_data.pixels = loadImage(file_path);
+                }
+            }
+            return sprites;
+        }
+        #endregion
     }
 }
