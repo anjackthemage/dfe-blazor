@@ -97,6 +97,9 @@ namespace dfe.Shared.Entities
 
         [JsonInclude]
         public Coord position = new Coord();
+
+        [JsonInclude]
+        public bool b_state_has_changed = false;
         
         public PixelBuffer sprite { get; set; }
 
