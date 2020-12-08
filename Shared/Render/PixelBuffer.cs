@@ -4,6 +4,7 @@ using System.Numerics;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Text.Json.Serialization;
 
 namespace dfe.Shared.Render
 {
@@ -12,12 +13,16 @@ namespace dfe.Shared.Render
     /// </summary>
     public class PixelBuffer
     {
+        [JsonInclude]
         public int width;
         // Overall height of the buffer, in pixels.
+        [JsonInclude]
         public readonly int height;
         // The stride of the buffer -or- the data size of one row of pixels in bytes.
+        [JsonInclude]
         public readonly int stride;
         // The RGBA pixel buffer, each pixel is 4 bytes in RGBA order.
+        [JsonInclude]
         public byte[] pixels;
 
         /// <summary>

@@ -8,13 +8,17 @@ using dfe.Shared.Render;
 using System.Numerics;
 using System.Collections.Generic;
 using dfe.Shared.Entities;
+using System.Text.Json.Serialization;
 
 namespace dfe.Shared
 {
     public class sprite
     {
+        [JsonInclude]
         public int id { get; set; }
+        [JsonInclude]
         public string file { get; set; }
+        [JsonInclude]
         public PixelBuffer pb_data { get; set; }
     }
 

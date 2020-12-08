@@ -4,6 +4,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR.Client;
 using dfe.Shared.Entities;
+using dfe.Shared.Render;
+using dfe.Shared;
 
 namespace dfe.Client.Engine.Network
 {
@@ -18,6 +20,8 @@ namespace dfe.Client.Engine.Network
         public Guid local_player_guid;
 
         public Dictionary<Guid, Player> connected_players = new Dictionary<Guid, Player>();
+
+        public sprite default_sprite = new sprite();
 
         public PlayerClient(HubConnection new_hub_conn)
         {
@@ -51,16 +55,20 @@ namespace dfe.Client.Engine.Network
                 {
                     if (plyr.guid != local_player_guid)
                     {
+                        Console.WriteLine("Loading player: {0}", plyr.guid);
                         if (connected_players.Count > 0 && connected_players.ContainsKey(plyr.guid))
                         {
                             connected_players[plyr.guid].position = plyr.position;
                             connected_players[plyr.guid].position.X = plyr.position.X;
                             connected_players[plyr.guid].position.Y = plyr.position.Y;
+                            connected_players[plyr.guid].sprite = default_sprite.pb_data;
                             //connected_players[plyr.guid].sprite = MapClient.map_client.level_map.sprites[1].pb_data;
                         }
                         else
                         {
+                            Console.WriteLine("New player!");
                             Player temp_player = new Player(plyr.position.X, plyr.position.Y, 0.0f);
+                            temp_player.sprite = default_sprite.pb_data;
                             //temp_player.sprite = MapClient.map_client.level_map.sprites[1].pb_data;
                             temp_player.guid = plyr.guid;
                             connected_players.Add(temp_player.guid, temp_player);
@@ -87,7 +95,6 @@ namespace dfe.Client.Engine.Network
             {
                 if (b_is_player_registered)
                 {
-                    Console.WriteLine("Heartbeat!");
                     player_hub_conn.SendAsync("receivePlayerHeartbeat", GameClient.game_state.player);
                 }
             });
@@ -95,6 +102,21 @@ namespace dfe.Client.Engine.Network
             player_hub_conn.StartAsync();
 
             player_client = this;
+
+            #region asset transfer
+            player_hub_conn.On<Dictionary<int, Texture>>("receiveTextures", (t_dict) =>
+            {
+                Console.WriteLine("Textures received!");
+                GameClient.client.texture_assets = t_dict;
+            });
+
+            player_hub_conn.On<Dictionary<int, sprite>>("receiveSprites", (s_dict) =>
+            {
+                Console.WriteLine("Sprites received!");
+                GameClient.client.sprite_assets = s_dict;
+                default_sprite = s_dict[1];
+            });
+            #endregion
         }
     }
 }

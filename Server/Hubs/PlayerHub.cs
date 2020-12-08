@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR;
 using dfe.Shared.Entities;
+using dfe.Server.Engine;
 
 namespace dfe.Server.Hubs
 {
@@ -108,5 +109,18 @@ namespace dfe.Server.Hubs
             }
         }
         #endregion
+
+        #region asset transfer
+        public async Task getTextures()
+        {
+            await Clients.Client(Context.ConnectionId).SendAsync("receiveTextures", GameServer.server.texture_assets);
+        }
+
+        public async Task getSprites()
+        {
+            await Clients.Client(Context.ConnectionId).SendAsync("receiveSprites", GameServer.server.sprite_assets);
+        }
+        #endregion
+
     }
 }

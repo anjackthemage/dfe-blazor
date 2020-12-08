@@ -8,6 +8,7 @@ using dfe.Server.Hubs;
 using Microsoft.AspNetCore.SignalR;
 using System.IO;
 using System.Text.Json;
+using System.Linq;
 
 namespace dfe.Server.Engine
 {
@@ -94,13 +95,17 @@ namespace dfe.Server.Engine
 
                 if (asset_type == typeof(sprite))
                 {
-                    local_sprites = JsonSerializer.Deserialize<sprite[]>(json_str);
-                    loadAssets(ref local_sprites);
+                    sprite[] s_array = JsonSerializer.Deserialize<sprite[]>(json_str);
+                    loadAssets(ref s_array);
+                    // Convert to dict
+                    sprite_assets = s_array.Select((value, key) => new { value, key }).ToDictionary(element => element.key, element => element.value);
                 }
                 else if (asset_type == typeof(Texture))
                 {
-                    local_textures = JsonSerializer.Deserialize<Texture[]>(json_str);
-                    loadAssets(ref local_textures);
+                    Texture[] t_array = JsonSerializer.Deserialize<Texture[]>(json_str);
+                    loadAssets(ref t_array);
+                    // Convert to dict
+                    texture_assets = t_array.Select((value, key) => new { value, key }).ToDictionary(element => element.key, element => element.value);
                 }
             }
             else

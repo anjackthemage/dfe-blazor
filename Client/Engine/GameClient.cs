@@ -1,4 +1,5 @@
 ﻿using dfe.Client.Engine.Network;
+using dfe.Shared;
 using dfe.Shared.Entities;
 using dfe.Shared.Render;
 using Microsoft.AspNetCore.Components;
@@ -21,6 +22,10 @@ namespace dfe.Client.Engine
         public static ClientState game_state;
         // Handles high level rendering procedures.
         public static Renderer renderer;
+
+        // assets
+        public Dictionary<int, Texture> texture_assets;
+        public Dictionary<int, sprite> sprite_assets;
 
         public IJSRuntime JsRuntime;
 
@@ -48,14 +53,11 @@ namespace dfe.Client.Engine
 
             // Create connection Hubs
             player_hub_conn = new HubConnectionBuilder().WithUrl(ph_uri).Build();
-
             map_hub_conn = new HubConnectionBuilder().WithUrl(mh_uri).Build();
-
             chat_hub_conn = new HubConnectionBuilder().WithUrl(ch_uri).Build();
 
 
             player_client = new PlayerClient(player_hub_conn);
-
             map_client = new MapClient(map_hub_conn);
 
             map_client.loadMapFromServer();
@@ -65,7 +67,8 @@ namespace dfe.Client.Engine
 
             player_hub_conn.SendAsync("registerPlayerConnection", game_state.player);
 
-
+            player_hub_conn.SendAsync("getSprites");
+            player_hub_conn.SendAsync("getTextures");
 
             b_is_running = true;
 
@@ -87,9 +90,9 @@ namespace dfe.Client.Engine
         public async Task render()
         {
             renderer.render();
-            
+
             // TODO: Move these calls to PlayerClient, don't call updateConnectedPlayers every frame.
-            player_hub_conn.SendAsync("updateConnectedPlayers");
+            //player_hub_conn.SendAsync("updateConnectedPlayers");
             player_hub_conn.SendAsync("updatePlayerPosition", game_state.player.position);
 
             foreach (KeyValuePair<Guid, Player> player_conn in player_client.connected_players)
