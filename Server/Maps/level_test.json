@@ -18,32 +18,6 @@
 		1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
 		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
 	],
-	"sprites": [{
-		"id": 0,
-		"file": ""
-	}, {
-		"id": 1,
-		"file": "Jonesy.data"
-	}, {
-		"id": 2,
-		"file": "Nonesy.data"
-	}],
-	"textures": [{
-		"id": 0,
-		"file": ""
-	}, {
-		"id": 1,
-		"file": "wall_rbw_lines_1.data"
-	}, {
-		"id": 2,
-		"file": "wall_rbw_lines_2.data"
-	}, {
-		"id": 3,
-		"file": "wall_rbw_lines_3.data"
-	}, {
-		"id": 4,
-		"file": "wall_rbw_lines_4.data"
-	}],
 	"entities": [],
 	"mobs": [{
 		"type": 1,

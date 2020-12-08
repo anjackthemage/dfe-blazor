@@ -56,12 +56,12 @@ namespace dfe.Client.Engine.Network
                             connected_players[plyr.guid].position = plyr.position;
                             connected_players[plyr.guid].position.X = plyr.position.X;
                             connected_players[plyr.guid].position.Y = plyr.position.Y;
-                            connected_players[plyr.guid].sprite = MapClient.map_client.level_map.sprites[1].pb_data;
+                            //connected_players[plyr.guid].sprite = MapClient.map_client.level_map.sprites[1].pb_data;
                         }
                         else
                         {
                             Player temp_player = new Player(plyr.position.X, plyr.position.Y, 0.0f);
-                            temp_player.sprite = MapClient.map_client.level_map.sprites[1].pb_data;
+                            //temp_player.sprite = MapClient.map_client.level_map.sprites[1].pb_data;
                             temp_player.guid = plyr.guid;
                             connected_players.Add(temp_player.guid, temp_player);
                         }

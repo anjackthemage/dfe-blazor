@@ -66,6 +66,16 @@ namespace dfe.Server.Hubs
             await Clients.All.SendAsync("updatePlayerPositions", player_locations);
         }
 
+        // get player state from client
+
+        // send client new map state
+
+        // send client updated/new entities
+
+        // send client updated/new mobs
+
+        // send client updated/new players
+
         #region Heartbeat
         public void initiateHeartbeat()
         {
