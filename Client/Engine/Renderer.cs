@@ -23,6 +23,9 @@ namespace dfe.Client.Engine
         public SpriteDef default_sprite;
         public TextureDef default_texture;
 
+        public Dictionary<int, bool> missing_sprites;
+        public Dictionary<int, bool> missing_textures;
+
         // The current viewpoint.
         public Camera camera;
 
@@ -34,6 +37,9 @@ namespace dfe.Client.Engine
             // Generate placeholder texture
             textures = new Dictionary<int, TextureDef>();
             sprites = new Dictionary<int, SpriteDef>();
+            missing_sprites = new Dictionary<int, bool>();
+            missing_textures = new Dictionary<int, bool>();
+
             PixelBuffer tex = new PixelBuffer(16, 16);
             Render.clear(tex, new Rgba(0, 0, 0));
             for (int y = 0; y < 16; y++)
@@ -66,11 +72,28 @@ namespace dfe.Client.Engine
             renderFloor();
             renderWalls(map);
             renderSprites(camera);
-            if(textures.Count > 0 && once == false)
+
+            // Request missing textures
+            foreach(int id in missing_textures.Keys)
             {
-                Console.WriteLine(textures[0]);
-                Console.WriteLine(textures[0].pixelBuffer);
-                once = true;
+                if(missing_textures[id] == false)
+                {
+                    // Request the texture
+                    GameClient.client.requestTexturePixels(id);
+                    // Flag it as requested.
+                    missing_textures[id] = true;
+                }
+            }
+
+            foreach(int id in missing_sprites.Keys)
+            {
+                if(missing_sprites[id] == false)
+                {
+                    // Request the sprite
+                    GameClient.client.requestSpritePixels(id);
+                    // Flag it as requested.
+                    missing_sprites[id] = true;
+                }
             }
         }
         bool once = false;
@@ -158,6 +181,9 @@ namespace dfe.Client.Engine
                 else
                 {
                     Render.sprite(frame_buffer, (int)spr_vis.screen_x + (frame_buffer.width / 2), spr_vis.distance, ray_buffer, default_sprite);
+                    // If the sprite is to be requested, or being downloaded, dont request it.
+                    if (missing_sprites.ContainsKey(sprite.id) == false)
+                        missing_sprites.Add(sprite.id, false);
                 }
             }
         }
@@ -221,6 +247,9 @@ namespace dfe.Client.Engine
                     Render.wallColumn(frame_buffer, x, 1, ray.dis, ray.texOfs, tex.pixelBuffer, new Rgba(0x0, 0x80, 0xFF, 0x08));
                 }  else  {
                     Render.wallColumn(frame_buffer, x, 1, ray.dis, ray.texOfs, default_texture.pixelBuffer, new Rgba(0x0, 0x80, 0xFF, 0x08));
+                    // If the sprite is to be requested, or being downloaded, dont request it.
+                    if (missing_textures.ContainsKey(ray.texture_id) == false)
+                        missing_textures.Add(ray.texture_id, false);
                 }
             }
         }

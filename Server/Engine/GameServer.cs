@@ -83,7 +83,17 @@ namespace dfe.Server.Engine
             byte[] image_bytes = new byte[image_fs.Length];
             image_fs.Read(image_bytes);
 
-            return image_bytes;
+            // HACK: Super dirty conversion here - lets make a more graceful image loader :)
+            int siz = image_bytes.Length + (image_bytes.Length / 3);
+            byte[] converted_buffer = new byte[siz];
+            for(int i= 0, j = 0; i < siz; i +=4, j += 3)
+            {
+                converted_buffer[i] = image_bytes[j];
+                converted_buffer[i + 1] = image_bytes[j + 1];
+                converted_buffer[i + 2] = image_bytes[j + 2];
+                converted_buffer[i + 3] = 0xFF;
+            }
+            return converted_buffer;
         }
 
         public void loadAssetsFromFile(string file_path, Type asset_type)
@@ -112,13 +122,23 @@ namespace dfe.Server.Engine
             {
                 Console.WriteLine("File not found: {0}", file_path);
             }
+            Console.WriteLine("Converting Sprites : ");
+            foreach (SpriteDef spr in sprite_assets.Values)
+            {
+                Console.WriteLine(spr);
+            }
+            Console.WriteLine("Loaded Textures : ");
+            foreach (TextureDef tex in texture_assets.Values)
+            {
+                Console.WriteLine(tex);
+            }
         }
 
         public TextureDef[] loadAssets(ref TextureDef[] textures)
         {
             foreach (TextureDef tex in textures)
             {
-                string file_path = "Assets/Textures/" + tex.filename;
+                string file_path = "Assets/Textures/" + tex.file;
                 if (File.Exists(file_path))
                 {
                     tex.pixelBuffer = new PixelBuffer(64, 64);
@@ -133,7 +153,7 @@ namespace dfe.Server.Engine
         {
             foreach (SpriteDef spr in sprites)
             {
-                string file_path = "Assets/Sprites/" + spr.filename;
+                string file_path = "Assets/Sprites/" + spr.file;
                 if (File.Exists(file_path))
                 {
                     spr.pixelBuffer = new PixelBuffer(16, 16);

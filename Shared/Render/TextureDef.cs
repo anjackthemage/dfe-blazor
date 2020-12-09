@@ -14,7 +14,7 @@ namespace dfe.Shared.Render
         // Lookup Id number for this texture.
         public int id { get; set; }
         // Filename for this texture, used on the server side.
-        public string filename { get; set; }
+        public string file { get; set; }
         // The pixel buffer loaded into this texture.
         public PixelBuffer pixelBuffer { get; set; }
         /// <summary>
@@ -32,7 +32,7 @@ namespace dfe.Shared.Render
         public TextureDef(int id, string filename)
         {
             this.id = id;
-            this.filename = filename;
+            this.file = filename;
         }
         /// <summary>
         /// Client Side Constructor 
@@ -48,7 +48,7 @@ namespace dfe.Shared.Render
 
         public override string ToString()
         {
-            return "Texture Id :" + id + " Filename :" + filename + " PixelBuffer:" + pixelBuffer;
+            return "Texture Id :" + id + " Filename :" + file + " PixelBuffer:" + pixelBuffer;
         }
     }
 }

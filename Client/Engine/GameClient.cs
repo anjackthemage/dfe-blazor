@@ -172,5 +172,14 @@ namespace dfe.Client.Engine
             game_sim.input_state.mouseDelta = x;
         }
 
+        public void requestTexturePixels(int texture_id)
+        {
+            player_hub_conn.SendAsync("getTexturePixels", texture_id);
+        }
+
+        public void requestSpritePixels(int sprite_id)
+        {
+            player_hub_conn.SendAsync("getSpritePixels", sprite_id);
+        }
     }
 }

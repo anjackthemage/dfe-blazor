@@ -13,7 +13,7 @@ namespace dfe.Shared.Render
     public class SpriteDef
     {
         // Server side only - Filename of the sprite bitmap.
-        public string filename;
+        public string file;
         // Id number of this sprite def
         [JsonInclude]
         public int id;
@@ -53,7 +53,7 @@ namespace dfe.Shared.Render
         public SpriteDef(int id, string filename)
         {
             this.id = id;
-            this.filename = filename;
+            this.file = filename;
             alpha = 0xFF;
             pixelBuffer = null;
         }
@@ -67,7 +67,7 @@ namespace dfe.Shared.Render
         {
             this.id = id;
             this.alpha = alpha;
-            this.filename = filename;
+            this.file = filename;
             pixelBuffer = null;
         }
 
@@ -96,7 +96,7 @@ namespace dfe.Shared.Render
         }
         public override string ToString()
         {
-            return "Sprite Id :" + id + " Filename :" + filename + " Alpha:" + alpha + " Scale:" + scale + " PixelBuffer:" + pixelBuffer;
+            return "Sprite Id :" + id + " Filename :" + file + " Alpha:" + alpha + " Scale:" + scale + " PixelBuffer:" + pixelBuffer;
         }
 
     }

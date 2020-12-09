@@ -117,6 +117,22 @@ namespace dfe.Client.Engine.Network
                 GameClient.renderer.sprites = s_dict;
                 Console.WriteLine(s_dict[0]);
             });
+
+            player_hub_conn.On<int, int, int, byte[]>("receiveSpritePixels", (id, width, height, pixels) =>
+            {
+                PixelBuffer pixelBuffer = new PixelBuffer(width, height);
+                pixelBuffer.pixels = pixels;
+                GameClient.renderer.sprites[id].pixelBuffer = pixelBuffer;
+                GameClient.renderer.missing_sprites.Remove(id);
+            });
+
+            player_hub_conn.On<int, int, int, byte[]>("receiveTexturePixels", (id, width, height, pixels) =>
+            {
+                PixelBuffer pixelBuffer = new PixelBuffer(width, height);
+                pixelBuffer.pixels = pixels;
+                GameClient.renderer.textures[id].pixelBuffer = pixelBuffer;
+                GameClient.renderer.missing_textures.Remove(id);
+            });
             #endregion
         }
     }

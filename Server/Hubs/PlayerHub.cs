@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR;
 using dfe.Shared.Entities;
 using dfe.Server.Engine;
+using dfe.Shared.Render;
 
 namespace dfe.Server.Hubs
 {
@@ -119,6 +120,30 @@ namespace dfe.Server.Hubs
         public async Task getSprites()
         {
             await Clients.Client(Context.ConnectionId).SendAsync("receiveSpriteDefs", GameServer.server.sprite_assets);
+        }
+
+        public async Task getTexturePixels(int id)
+        {
+            TextureDef[] textures = GameServer.server.local_textures;
+            if(textures == null || id < 0 || id >= textures.Length)
+            {
+                Console.WriteLine("Unable to fetch requested texture : " + id);
+                return;
+            }
+            PixelBuffer buffer = textures[id].pixelBuffer;
+            await Clients.Client(Context.ConnectionId).SendAsync("receiveTexturePixels", id, buffer.width, buffer.height, buffer.pixels);
+        }
+
+        public async Task getSpritePixels(int id)
+        {
+            SpriteDef[] sprites = GameServer.server.local_sprites;
+            if (sprites == null || id < 0 || id >= sprites.Length)
+            {
+                Console.WriteLine("Unable to fetch requested sprite : " + id);
+                return;
+            }
+            PixelBuffer buffer = sprites[id].pixelBuffer;
+            await Clients.Client(Context.ConnectionId).SendAsync("receiveSpritePixels", id, buffer.width, buffer.height, buffer.pixels);
         }
         #endregion
 
