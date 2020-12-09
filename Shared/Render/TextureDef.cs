@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace dfe.Shared.Render
 {
-    public class Texture
+    public class TextureDef
     {
         // Lookup Id number for this texture.
         public int id { get; set; }

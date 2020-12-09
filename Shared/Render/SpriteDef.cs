@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace dfe.Shared.Render
@@ -11,11 +12,24 @@ namespace dfe.Shared.Render
     /// </summary>
     public class SpriteDef
     {
+        [JsonInclude]
         public int id;
-        public PixelBuffer pixelBuffer;
+        [JsonInclude]
         public byte alpha;
         // Server side only.
+        [JsonInclude]
         public string filename;
+
+        public PixelBuffer pixelBuffer;
+        /// <summary>
+        /// Default Constructor
+        /// </summary>
+        public SpriteDef()
+        {
+            id = 0;
+            alpha = 0xFF;
+            pixelBuffer = null;
+        }
         /// <summary>
         /// Creates a sprite defenition that references a given texture.
         /// </summary>

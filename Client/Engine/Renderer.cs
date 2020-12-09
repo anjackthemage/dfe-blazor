@@ -18,6 +18,7 @@ namespace dfe.Client.Engine
         
         // Texture cache for rendering.
         public Dictionary<int, PixelBuffer> textures;
+
         // The current viewpoint.
         public Camera camera;
 

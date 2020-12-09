@@ -22,14 +22,14 @@ namespace dfe.Server.Engine
         public static bool b_is_running { get; private set; }
 
         public Dictionary<int, Zone> world;
-        public Dictionary<int, Texture> texture_assets;
-        public Dictionary<int, sprite> sprite_assets;
+        public Dictionary<int, TextureDef> texture_assets;
+        public Dictionary<int, SpriteDef> sprite_assets;
 
         public GameServer()
         {
             world = new Dictionary<int, Zone>();
-            texture_assets = new Dictionary<int, Texture>();
-            sprite_assets = new Dictionary<int, sprite>();
+            texture_assets = new Dictionary<int, TextureDef>();
+            sprite_assets = new Dictionary<int, SpriteDef>();
 
             Zone zone = new Zone();
             world.Add(0, zone);
@@ -38,8 +38,8 @@ namespace dfe.Server.Engine
             b_is_running = true;
 
 
-            loadAssetsFromFile("Assets/texture_directory.json", typeof(Texture));
-            loadAssetsFromFile("Assets/sprite_directory.json", typeof(sprite));
+            loadAssetsFromFile("Assets/texture_directory.json", typeof(TextureDef));
+            loadAssetsFromFile("Assets/sprite_directory.json", typeof(SpriteDef));
 
             doGameLoop();
         }
@@ -74,8 +74,8 @@ namespace dfe.Server.Engine
 
 
         #region asset loading
-        public sprite[] local_sprites;
-        public Texture[] local_textures;
+        public SpriteDef[] local_sprites;
+        public TextureDef[] local_textures;
 
         public byte[] loadImage(string file_path)
         {
@@ -93,16 +93,16 @@ namespace dfe.Server.Engine
             {
                 string json_str = File.ReadAllText(file_path);
 
-                if (asset_type == typeof(sprite))
+                if (asset_type == typeof(SpriteDef))
                 {
-                    sprite[] s_array = JsonSerializer.Deserialize<sprite[]>(json_str);
+                    SpriteDef[] s_array = JsonSerializer.Deserialize<SpriteDef[]>(json_str);
                     loadAssets(ref s_array);
                     // Convert to dict
                     sprite_assets = s_array.Select((value, key) => new { value, key }).ToDictionary(element => element.key, element => element.value);
                 }
-                else if (asset_type == typeof(Texture))
+                else if (asset_type == typeof(TextureDef))
                 {
-                    Texture[] t_array = JsonSerializer.Deserialize<Texture[]>(json_str);
+                    TextureDef[] t_array = JsonSerializer.Deserialize<TextureDef[]>(json_str);
                     loadAssets(ref t_array);
                     // Convert to dict
                     texture_assets = t_array.Select((value, key) => new { value, key }).ToDictionary(element => element.key, element => element.value);
@@ -114,9 +114,9 @@ namespace dfe.Server.Engine
             }
         }
 
-        public Texture[] loadAssets(ref Texture[] textures)
+        public TextureDef[] loadAssets(ref TextureDef[] textures)
         {
-            foreach (Texture tex in textures)
+            foreach (TextureDef tex in textures)
             {
                 string file_path = "Assets/Textures/" + tex.file;
                 if (File.Exists(file_path))
@@ -129,16 +129,16 @@ namespace dfe.Server.Engine
             return textures;
         }
 
-        public sprite[] loadAssets(ref sprite[] sprites)
+        public SpriteDef[] loadAssets(ref SpriteDef[] sprites)
         {
-            foreach (sprite spr in sprites)
+            foreach (SpriteDef spr in sprites)
             {
-                string file_path = "Assets/Sprites/" + spr.file;
+                string file_path = "Assets/Sprites/" + spr.filename;
                 if (File.Exists(file_path))
                 {
-                    spr.pb_data = new PixelBuffer(16, 16);
+                    spr.pixelBuffer = new PixelBuffer(16, 16);
 
-                    spr.pb_data.pixels = loadImage(file_path);
+                    spr.pixelBuffer.pixels = loadImage(file_path);
                 }
             }
             return sprites;

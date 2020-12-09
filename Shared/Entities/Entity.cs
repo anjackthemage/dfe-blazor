@@ -22,9 +22,6 @@ namespace dfe.Shared.Entities
 
         [JsonInclude]
         public bool b_state_has_changed = false;
-        
-        public PixelBuffer sprite { get; set; }
-
         [JsonInclude]
         public int type;
         [JsonInclude]

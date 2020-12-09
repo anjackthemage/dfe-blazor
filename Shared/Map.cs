@@ -12,16 +12,6 @@ using System.Text.Json.Serialization;
 
 namespace dfe.Shared
 {
-    public class sprite
-    {
-        [JsonInclude]
-        public int id { get; set; }
-        [JsonInclude]
-        public string file { get; set; }
-        [JsonInclude]
-        public PixelBuffer pb_data { get; set; }
-    }
-
     public class actor
     {
         public int type { get; set; }

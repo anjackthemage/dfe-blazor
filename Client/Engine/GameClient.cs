@@ -24,8 +24,8 @@ namespace dfe.Client.Engine
         public static Renderer renderer;
 
         // assets
-        public Dictionary<int, Texture> texture_assets;
-        public Dictionary<int, sprite> sprite_assets;
+        public Dictionary<int, TextureDef> texture_assets;
+        public Dictionary<int, SpriteDef> sprite_assets;
 
         public IJSRuntime JsRuntime;
 
