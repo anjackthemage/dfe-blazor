@@ -118,7 +118,7 @@ namespace dfe.Server.Engine
         {
             foreach (TextureDef tex in textures)
             {
-                string file_path = "Assets/Textures/" + tex.file;
+                string file_path = "Assets/Textures/" + tex.filename;
                 if (File.Exists(file_path))
                 {
                     tex.pixelBuffer = new PixelBuffer(64, 64);

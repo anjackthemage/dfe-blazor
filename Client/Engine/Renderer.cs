@@ -17,8 +17,9 @@ namespace dfe.Client.Engine
         public RayData[] ray_buffer;
         
         // Texture cache for rendering.
-        public Dictionary<int, PixelBuffer> textures;
-
+        public Dictionary<int, TextureDef> textures;
+        // Sprite cache for rendering
+        public Dictionary<int, SpriteDef> sprites;
         // The current viewpoint.
         public Camera camera;
 
@@ -28,7 +29,8 @@ namespace dfe.Client.Engine
             frame_buffer = new PixelBuffer(screenWidth, screenHeight);
 
             // Generate placeholder texture
-            textures = new Dictionary<int, PixelBuffer>();
+            textures = new Dictionary<int, TextureDef>();
+            sprites = new Dictionary<int, SpriteDef>();
             PixelBuffer tex = new PixelBuffer(16, 16);
             Render.clear(tex, new Rgba(0, 0, 0));
             for (int y = 0; y < 16; y++)
@@ -38,8 +40,8 @@ namespace dfe.Client.Engine
                     byte c = (byte)(y * 16);
                     Render.point(tex, x, y, new Rgba(0, b, c));
                 }
-            textures.Add(0, tex);
-
+            sprites.Add(0, new SpriteDef(0, tex));
+            textures.Add(0, new TextureDef(0, tex));
             // Ray buffer used for storing ray cast results.
             ray_buffer = new RayData[camera.view_cols];
             for (int index = 0; index < ray_buffer.Length; index++)
@@ -122,14 +124,14 @@ namespace dfe.Client.Engine
             //OPTI: This code section could benefit from using some fixed point integers instead of floats.
             float nx = (float)Math.Cos(-camera.view_angle);
             float ny = (float)Math.Sin(-camera.view_angle);
+            //OPTI: Math.Tan(fov / 2) is a constant that only needs to be calculated once.
+            float viewAdjacent = (float)(frame_buffer.width / 2) / (float)Math.Tan(camera.fov / 2);
             foreach (SpriteVis spr_vis in sprite_vis)
             {
                 float tx = (spr_vis.x - camera.x) / 16;
                 float ty = (spr_vis.y - camera.y) / 16;
                 float sx = ((tx * nx) - (ty * ny));
                 float sy = ((tx * ny) + (ty * nx));
-                //OPTI: Math.Tan(fov / 2) is a constant that only needs to be calculated once.
-                float viewAdjacent = (float)(frame_buffer.width / 2) / (float)Math.Tan(camera.fov / 2);
                 int screen_x = (int)((sy / sx) * viewAdjacent);
                 spr_vis.screen_x = screen_x;
                 spr_vis.distance = sx;
@@ -145,15 +147,17 @@ namespace dfe.Client.Engine
             // Render the list.
             foreach (SpriteVis spr_vis in sprite_vis)
             {
-                PixelBuffer buffer = textures[0];
-                if (textures.TryGetValue(spr_vis.sprite_id, out buffer) == true)
+                SpriteDef sprite = sprites[0];
+                //PixelBuffer buffer = textures[0].pixelBuffer;
+                if (sprites.TryGetValue(spr_vis.sprite_id, out sprite) == true)
                 {
-                    Render.sprite(frame_buffer, (int)spr_vis.screen_x + (frame_buffer.width / 2), spr_vis.distance, ray_buffer, buffer);
-                } else {
-                    Render.sprite(frame_buffer, (int)spr_vis.screen_x + (frame_buffer.width / 2), spr_vis.distance, ray_buffer, textures[0]);
+                    Render.sprite(frame_buffer, (int)spr_vis.screen_x + (frame_buffer.width / 2), spr_vis.distance, ray_buffer, sprite);
+                }
+                else
+                {
+                    Render.sprite(frame_buffer, (int)spr_vis.screen_x + (frame_buffer.width / 2), spr_vis.distance, ray_buffer, sprites[0]);
                 }
             }
-
         }
 
         public RayData[] buildRayBuffer(Camera cam, Map level_map)
@@ -175,7 +179,7 @@ namespace dfe.Client.Engine
         }
         public void renderFloor()
         {
-            PixelBuffer tex = textures[0];
+            TextureDef tex = textures[0];
             try
             {
                 float obsX = -camera.x / camera.grid_x;
@@ -184,7 +188,7 @@ namespace dfe.Client.Engine
                 RayData rightAngles = ray_buffer[ray_buffer.Length - 1];
                 for (int screenY = frame_buffer.height / 2; screenY < frame_buffer.height; screenY++)
                 {
-                    Render.floor(frame_buffer, screenY, 1, obsX, obsY, leftAngles, rightAngles, tex);
+                    Render.floor(frame_buffer, screenY, 1, obsX, obsY, leftAngles, rightAngles, tex.pixelBuffer);
 
                 }
             } catch (Exception e)
@@ -216,12 +220,12 @@ namespace dfe.Client.Engine
             for (int x = 0; x < frame_buffer.width; x++)
             {
                 ray = ray_buffer[x];
-                PixelBuffer buffer = textures[0];
-                if (textures.TryGetValue(ray.texture_id, out buffer) == true)
+                TextureDef tex = textures[0];
+                if (textures.TryGetValue(ray.texture_id, out tex) == true)
                 {
-                    Render.wallColumn(frame_buffer, x, 1, ray.dis, ray.texOfs, buffer, new Rgba(0x0, 0x80, 0xFF, 0x08));
+                    Render.wallColumn(frame_buffer, x, 1, ray.dis, ray.texOfs, tex.pixelBuffer, new Rgba(0x0, 0x80, 0xFF, 0x08));
                 }  else  {
-                    Render.wallColumn(frame_buffer, x, 1, ray.dis, ray.texOfs, textures[0], new Rgba(0x0, 0x80, 0xFF, 0x08));
+                    Render.wallColumn(frame_buffer, x, 1, ray.dis, ray.texOfs, textures[0].pixelBuffer, new Rgba(0x0, 0x80, 0xFF, 0x08));
                 }
             }
         }

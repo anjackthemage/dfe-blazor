@@ -853,8 +853,9 @@ namespace dfe.Shared.Render
             }
         }
 
-        public static void sprite(PixelBuffer dst, int x, float scale, float distance, RayData[] y_buffer, SpriteDef sprite)
+        public static void sprite(PixelBuffer dst, int x, float distance, RayData[] y_buffer, SpriteDef sprite)
         {
+            float scale = sprite.scale;
             // No alpha blending.
             if(sprite.alpha == 0xFF)
             {
