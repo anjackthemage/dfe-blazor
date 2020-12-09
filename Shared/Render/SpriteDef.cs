@@ -94,5 +94,10 @@ namespace dfe.Shared.Render
             this.scale = 1;
             this.pixelBuffer = pixelBuffer;
         }
+        public override string ToString()
+        {
+            return "Sprite Id :" + id + " Filename :" + filename + " Alpha:" + alpha + " Scale:" + scale + " PixelBuffer:" + pixelBuffer;
+        }
+
     }
 }

@@ -45,5 +45,10 @@ namespace dfe.Shared.Render
             this.id = id;
             this.pixelBuffer = pixelBuffer;
         }
+
+        public override string ToString()
+        {
+            return "Texture Id :" + id + " Filename :" + filename + " PixelBuffer:" + pixelBuffer;
+        }
     }
 }

@@ -11,7 +11,6 @@ namespace dfe.Server.Hubs
 {
     public class MapHub : Hub
     {
-        
         public async Task getMap()
         {
             Map map = GameServer.server.world[0].map;

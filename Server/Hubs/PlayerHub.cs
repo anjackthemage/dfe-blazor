@@ -113,12 +113,12 @@ namespace dfe.Server.Hubs
         #region asset transfer
         public async Task getTextures()
         {
-            await Clients.Client(Context.ConnectionId).SendAsync("receiveTextures", GameServer.server.texture_assets);
+            await Clients.Client(Context.ConnectionId).SendAsync("receiveTextureDefs", GameServer.server.texture_assets);
         }
 
         public async Task getSprites()
         {
-            await Clients.Client(Context.ConnectionId).SendAsync("receiveSprites", GameServer.server.sprite_assets);
+            await Clients.Client(Context.ConnectionId).SendAsync("receiveSpriteDefs", GameServer.server.sprite_assets);
         }
         #endregion
 

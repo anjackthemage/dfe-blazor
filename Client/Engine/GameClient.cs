@@ -23,10 +23,6 @@ namespace dfe.Client.Engine
         // Handles high level rendering procedures.
         public static Renderer renderer;
 
-        // assets
-        public Dictionary<int, TextureDef> texture_assets;
-        public Dictionary<int, SpriteDef> sprite_assets;
-
         public IJSRuntime JsRuntime;
 
         private HubConnection chat_hub_conn;

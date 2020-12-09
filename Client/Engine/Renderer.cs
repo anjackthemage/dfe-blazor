@@ -20,6 +20,9 @@ namespace dfe.Client.Engine
         public Dictionary<int, TextureDef> textures;
         // Sprite cache for rendering
         public Dictionary<int, SpriteDef> sprites;
+        public SpriteDef default_sprite;
+        public TextureDef default_texture;
+
         // The current viewpoint.
         public Camera camera;
 
@@ -40,8 +43,8 @@ namespace dfe.Client.Engine
                     byte c = (byte)(y * 16);
                     Render.point(tex, x, y, new Rgba(0, b, c));
                 }
-            sprites.Add(0, new SpriteDef(0, tex));
-            textures.Add(0, new TextureDef(0, tex));
+            default_sprite = new SpriteDef(0, tex);
+            default_texture = new TextureDef(0, tex);
             // Ray buffer used for storing ray cast results.
             ray_buffer = new RayData[camera.view_cols];
             for (int index = 0; index < ray_buffer.Length; index++)
@@ -62,16 +65,15 @@ namespace dfe.Client.Engine
             renderCeiling();
             renderFloor();
             renderWalls(map);
-
-            // Time to render sprites!
-
-            // Culling pass
             renderSprites(camera);
-            // Translation pass
-            // Draw all visible sprites.
-
+            if(textures.Count > 0 && once == false)
+            {
+                Console.WriteLine(textures[0]);
+                Console.WriteLine(textures[0].pixelBuffer);
+                once = true;
+            }
         }
-
+        bool once = false;
         public List<SpriteVis> sprite_vis;
         public void renderSprites(Camera cam)
         {
@@ -149,13 +151,13 @@ namespace dfe.Client.Engine
             {
                 SpriteDef sprite = sprites[0];
                 //PixelBuffer buffer = textures[0].pixelBuffer;
-                if (sprites.TryGetValue(spr_vis.sprite_id, out sprite) == true)
+                if (sprites.TryGetValue(spr_vis.sprite_id, out sprite) == true && sprite.pixelBuffer != null)
                 {
                     Render.sprite(frame_buffer, (int)spr_vis.screen_x + (frame_buffer.width / 2), spr_vis.distance, ray_buffer, sprite);
                 }
                 else
                 {
-                    Render.sprite(frame_buffer, (int)spr_vis.screen_x + (frame_buffer.width / 2), spr_vis.distance, ray_buffer, sprites[0]);
+                    Render.sprite(frame_buffer, (int)spr_vis.screen_x + (frame_buffer.width / 2), spr_vis.distance, ray_buffer, default_sprite);
                 }
             }
         }
@@ -180,22 +182,15 @@ namespace dfe.Client.Engine
         public void renderFloor()
         {
             TextureDef tex = textures[0];
-            try
+            float obsX = -camera.x / camera.grid_x;
+            float obsY = -camera.y / camera.grid_y;
+            RayData leftAngles = ray_buffer[0];
+            RayData rightAngles = ray_buffer[ray_buffer.Length - 1];
+            for (int screenY = frame_buffer.height / 2; screenY < frame_buffer.height; screenY++)
             {
-                float obsX = -camera.x / camera.grid_x;
-                float obsY = -camera.y / camera.grid_y;
-                RayData leftAngles = ray_buffer[0];
-                RayData rightAngles = ray_buffer[ray_buffer.Length - 1];
-                for (int screenY = frame_buffer.height / 2; screenY < frame_buffer.height; screenY++)
-                {
-                    Render.floor(frame_buffer, screenY, 1, obsX, obsY, leftAngles, rightAngles, tex.pixelBuffer);
+                Render.floor(frame_buffer, screenY, 1, obsX, obsY, leftAngles, rightAngles, default_texture.pixelBuffer);
 
-                }
-            } catch (Exception e)
-            {
-                Console.Write(e.Message);
             }
-            
         }
         public void renderCeiling()
         {
@@ -221,11 +216,11 @@ namespace dfe.Client.Engine
             {
                 ray = ray_buffer[x];
                 TextureDef tex = textures[0];
-                if (textures.TryGetValue(ray.texture_id, out tex) == true)
+                if (textures.TryGetValue(ray.texture_id, out tex) == true && tex.pixelBuffer != null)
                 {
                     Render.wallColumn(frame_buffer, x, 1, ray.dis, ray.texOfs, tex.pixelBuffer, new Rgba(0x0, 0x80, 0xFF, 0x08));
                 }  else  {
-                    Render.wallColumn(frame_buffer, x, 1, ray.dis, ray.texOfs, textures[0].pixelBuffer, new Rgba(0x0, 0x80, 0xFF, 0x08));
+                    Render.wallColumn(frame_buffer, x, 1, ray.dis, ray.texOfs, default_texture.pixelBuffer, new Rgba(0x0, 0x80, 0xFF, 0x08));
                 }
             }
         }

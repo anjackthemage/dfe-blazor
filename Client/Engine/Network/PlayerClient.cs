@@ -104,17 +104,18 @@ namespace dfe.Client.Engine.Network
             player_client = this;
 
             #region asset transfer
-            player_hub_conn.On<Dictionary<int, TextureDef>>("receiveTextures", (t_dict) =>
+            player_hub_conn.On<Dictionary<int, TextureDef>>("receiveTextureDefs", (t_dict) =>
             {
                 Console.WriteLine("Textures received!");
-                GameClient.client.texture_assets = t_dict;
+                GameClient.renderer.textures = t_dict;
             });
 
-            player_hub_conn.On<Dictionary<int, SpriteDef>>("receiveSprites", (s_dict) =>
+            player_hub_conn.On<Dictionary<int, SpriteDef>>("receiveSpriteDefs", (s_dict) =>
             {
                 Console.WriteLine("Sprites received!");
-                GameClient.client.sprite_assets = s_dict;
                 default_sprite = s_dict[1];
+                GameClient.renderer.sprites = s_dict;
+                Console.WriteLine(s_dict[0]);
             });
             #endregion
         }
