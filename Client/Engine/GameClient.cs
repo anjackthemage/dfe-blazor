@@ -68,18 +68,17 @@ namespace dfe.Client.Engine
 
             b_is_running = true;
 
-            //doGameLoop();
-            //while (b_is_running)
-            //{
-            //    // do client stuff
-            //}
+            doGameLoop();
+            
         }
 
-        public async Task doGameLoop()
+        private async Task doGameLoop()
         {
             while (b_is_running)
             {
-                
+
+                // Pause execution on this thread to let main thread process for a bit
+                await Task.Delay(1000);
             }
         }
 

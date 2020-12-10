@@ -14,6 +14,9 @@ namespace dfe.Shared.Entities
         [JsonInclude]
         public String player_name = "Test Player";
 
+        [JsonInclude]
+        public bool b_is_disconnect = false;
+
         public Player()
         {
             
