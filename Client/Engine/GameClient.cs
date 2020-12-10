@@ -91,19 +91,6 @@ namespace dfe.Client.Engine
             //player_hub_conn.SendAsync("updateConnectedPlayers");
             player_hub_conn.SendAsync("updatePlayerPosition", game_state.player.position);
 
-            foreach (KeyValuePair<Guid, Player> player_conn in player_client.connected_players)
-            {
-                try
-                {
-                   // player_conn.Value.render();
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine("Exception: {0}", e.ToString());
-                }
-            }
-
-            // presentScreen(JsRuntime, ray_tracer.frameBuffer);
         }
         public static double lastTime = 0;
         public async Task update(double time)

@@ -56,22 +56,20 @@ namespace dfe.Client.Engine.Network
                     if (plyr.guid != local_player_guid)
                     {
                         Console.WriteLine("Loading player: {0}", plyr.guid);
-                        if (connected_players.Count > 0 && connected_players.ContainsKey(plyr.guid))
+                        if (GameClient.game_state.local_players.Count > 0 && GameClient.game_state.local_players.ContainsKey(plyr.guid))
                         {
-                            connected_players[plyr.guid].position = plyr.position;
-                            connected_players[plyr.guid].position.X = plyr.position.X;
-                            connected_players[plyr.guid].position.Y = plyr.position.Y;
-                            connected_players[plyr.guid].sprite_id = default_sprite.id;
-                            //connected_players[plyr.guid].sprite = MapClient.map_client.level_map.sprites[1].pb_data;
+                            GameClient.game_state.local_players[plyr.guid].position = plyr.position;
+                            GameClient.game_state.local_players[plyr.guid].position.X = plyr.position.X;
+                            GameClient.game_state.local_players[plyr.guid].position.Y = plyr.position.Y;
+                            GameClient.game_state.local_players[plyr.guid].sprite_id = default_sprite.id;
                         }
                         else
                         {
                             Console.WriteLine("New player!");
                             Player temp_player = new Player(plyr.position.X, plyr.position.Y, 0.0f);
                             temp_player.sprite_id = default_sprite.id;
-                            //temp_player.sprite = MapClient.map_client.level_map.sprites[1].pb_data;
                             temp_player.guid = plyr.guid;
-                            connected_players.Add(temp_player.guid, temp_player);
+                            GameClient.game_state.local_players.Add(temp_player.guid, temp_player);
                         }
                     }
                 }
@@ -83,11 +81,12 @@ namespace dfe.Client.Engine.Network
                 {
                     Guid plyr_id = player_conn.Key;
                     Coord position = player_conn.Value;
-                    if (connected_players.ContainsKey(plyr_id))
+                    if (GameClient.game_state.local_players.ContainsKey(plyr_id))
                     {
-                        connected_players[plyr_id].position.X = position.X;
-                        connected_players[plyr_id].position.Y = position.Y;
+                        GameClient.game_state.local_players[plyr_id].position.X = position.X;
+                        GameClient.game_state.local_players[plyr_id].position.Y = position.Y;
                     }
+                    // TODO: If we get a position update for an untracked player, request player info from server
                 }
             });
 

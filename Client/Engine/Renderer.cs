@@ -145,6 +145,20 @@ namespace dfe.Client.Engine
                 }
             }
 
+            foreach (Entity ent in state.local_players.Values)
+            {
+                spritecount++;
+                if (((left.X * (ent.position.Y - origin.Y)) - (left.Y * (ent.position.X - origin.X))) > 0
+                && ((right.X * (ent.position.Y - origin.Y)) - (right.Y * (ent.position.X - origin.X))) < 0)
+                {
+                    sprite_vis.Add(new SpriteVis(ent));
+                }
+                else
+                {
+                    cullcount++;
+                }
+            }
+
             // Perform translation calculations on the resulting list.
             //OPTI: This code section could benefit from using some fixed point integers instead of floats.
             float nx = (float)Math.Cos(-camera.view_angle);
