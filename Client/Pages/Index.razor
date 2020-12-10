@@ -48,8 +48,8 @@
 
     <div>
         <label>
-            User:
-            <input @bind="user_input" />
+            Name:
+            <input @bind="player_name" />
         </label>
     </div>
     <div>
@@ -93,7 +93,16 @@
     private static GameClient game_client;
 
     private List<string> messages = new List<string>();
-    private string user_input;
+    private string p_name = "Test Player";
+    private string player_name {
+        get { return p_name;  }
+        set
+        {
+            p_name = value;
+            GameClient.game_state.player.player_name = p_name;
+            PlayerClient.player_client.player_hub_conn.SendAsync("updatePlayerData", GameClient.game_state.player);
+        }
+    }
     private string msg_input;
 
     private bool b_is_game_started = false;
@@ -108,9 +117,12 @@
 
         game_client = new GameClient(player_hub_uri, map_hub_uri, chat_hub_uri);
         game_client.JsRuntime = JsRuntime;
+        GameClient.game_state.player.player_name = p_name;
+
+
 
         game_client.OnPlayersUpdated += StateHasChanged;
-      
+
         this.handleKbInput = game_client.handleKeyboardInput;
         this.handleMouseInput = game_client.handleMouseInput;
         await base.OnInitializedAsync();
@@ -191,7 +203,7 @@
     public async Task sendMsg()
     {
         //await chat_hub_conn.SendAsync("sendMessage", user_input, msg_input);
-        await game_client.chat_client.sendMsg(msg_input, user_input);
+        await game_client.chat_client.sendMsg(msg_input, player_name);
     }
 
     public void refreshMessages(object sender, ChatMessageEventArgs che_args)

@@ -173,7 +173,7 @@ namespace dfe.Client.Engine
 
         public event Action OnPlayersUpdated;
 
-        public void updatePlayers()
+        public void updateRemotePlayerList()
         {
             OnPlayersUpdated?.Invoke();
         }

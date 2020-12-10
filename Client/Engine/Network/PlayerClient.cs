@@ -74,7 +74,7 @@ namespace dfe.Client.Engine.Network
                             GameClient.game_state.local_players.Remove(plyr.guid);
                         }
 
-                        GameClient.client.updatePlayers();
+                        GameClient.client.updateRemotePlayerList();
                     }
                 }
             });

@@ -39,6 +39,12 @@ namespace dfe.Server.Hubs
             await Clients.All.SendAsync("updateConnectedPlayers", connected_players.Values);
         }
 
+        public async Task updatePlayerData(Player plyr)
+        {
+            connected_players[Context.ConnectionId] = plyr;
+            await updateConnectedPlayers();
+        }
+
         public override Task OnDisconnectedAsync(Exception exception)
         {
             Console.WriteLine("Client disconnected: {0}", Context.ConnectionId);
