@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Text.Json.Serialization;
+using System.IO;
+using System.IO.Compression;
 
 namespace dfe.Shared.Render
 {
@@ -14,7 +16,7 @@ namespace dfe.Shared.Render
     public class PixelBuffer
     {
         [JsonInclude]
-        public int width;
+        public readonly int width;
         // Overall height of the buffer, in pixels.
         [JsonInclude]
         public readonly int height;
@@ -24,7 +26,8 @@ namespace dfe.Shared.Render
         // The RGBA pixel buffer, each pixel is 4 bytes in RGBA order.
         [JsonInclude]
         public byte[] pixels;
-
+        // Returns true if this pixel buffer is compressed.
+        public bool is_compressed { get { return (stride * height) != pixels.Length; } }
         /// <summary>
         /// Constructor
         /// </summary>
@@ -37,5 +40,36 @@ namespace dfe.Shared.Render
             stride = width * 4;
             pixels = new byte[width * height * 4];
         }
+
+        public void compressPixels()
+        {
+            if (pixels == null)
+            {
+                Console.WriteLine("No Pixel Data to Compress");
+                return;
+            }
+            if (is_compressed == true) return;
+            MemoryStream memStream = new MemoryStream();
+            GZipStream gzip = new GZipStream(memStream, CompressionMode.Compress);
+            gzip.Write(pixels, 0, pixels.Length);
+            gzip.Close();
+            pixels = memStream.ToArray();
+        }
+
+        public void decompressPixels()
+        {
+            if (pixels == null)
+            {
+                Console.WriteLine("No Pixel Data to Decompress");
+                return;
+            }
+            if (is_compressed == false) return;
+            GZipStream gzip = new GZipStream(new MemoryStream(pixels), CompressionMode.Decompress);
+            byte[] buffer = new byte[width * height * 4];
+            gzip.Read(buffer, 0, buffer.Length);
+            gzip.Close();
+            pixels = buffer;
+        }
+
     }
 }

@@ -121,14 +121,8 @@ namespace dfe.Client.Engine.Network
             {
                 Console.WriteLine("Receiving sprite : " + id);
                 PixelBuffer pixelBuffer = new PixelBuffer(width, height);
-                byte[] pixels = new byte[width * height * 4];
-                GZipStream gzip = new GZipStream(new MemoryStream(data), CompressionMode.Decompress);
-                gzip.Read(pixels, 0, pixelBuffer.pixels.Length);
-                gzip.Close();
-
-                Console.WriteLine("pixelBuffer : " + pixels.Length);
-                pixelBuffer.pixels = pixels;
-
+                pixelBuffer.pixels = data;
+                pixelBuffer.decompressPixels();
                 GameClient.renderer.sprites[id].pixelBuffer = pixelBuffer;
                 GameClient.renderer.missing_sprites.Remove(id);
             });
@@ -137,12 +131,8 @@ namespace dfe.Client.Engine.Network
             {
                 Console.WriteLine("Receiving textured : " + id);
                 PixelBuffer pixelBuffer = new PixelBuffer(width, height);
-                byte[] pixels = new byte[width * height * 4];
-                GZipStream gzip = new GZipStream(new MemoryStream(data), CompressionMode.Decompress);
-                gzip.Read(pixels, 0, pixelBuffer.pixels.Length);
-                gzip.Close();
-                Console.WriteLine("pixelBuffer : " + pixels.Length);
-                pixelBuffer.pixels = pixels;
+                pixelBuffer.pixels = data;
+                pixelBuffer.decompressPixels();
                 GameClient.renderer.textures[id].pixelBuffer = pixelBuffer;
                 GameClient.renderer.missing_textures.Remove(id);
             });

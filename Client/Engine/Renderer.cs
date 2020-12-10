@@ -387,8 +387,15 @@ namespace dfe.Client.Engine
         public void verifyTextures()
         {
             foreach (TextureDef tex in textures.Values)
+            {
                 if (tex.isValid() == false)
                     tex.pixelBuffer = null;
+                else if (tex.pixelBuffer.is_compressed)
+                {
+                    Console.WriteLine("Tex Decompressed on load.");
+                    tex.pixelBuffer.decompressPixels();
+                }
+            }
         }
 
         public void verifySprites()
@@ -396,6 +403,12 @@ namespace dfe.Client.Engine
             foreach (SpriteDef spr in sprites.Values)
                 if (spr.isValid() == false)
                     spr.pixelBuffer = null;
+                else if (spr.pixelBuffer.is_compressed)
+                {
+                    Console.WriteLine("Spr Decompressed on load.");
+                    spr.pixelBuffer.decompressPixels();
+                }
+
         }
     }
 }

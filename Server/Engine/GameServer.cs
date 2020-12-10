@@ -82,15 +82,18 @@ namespace dfe.Server.Engine
         public TextureDef[] local_textures;
 
         /// <summary>
-        /// Loads an image binary from the file system.
+        /// Loads a pixel buffer from an image file.
         /// </summary>
         /// <param name="file_path">Name of the file to load.</param>
-        /// <returns>byte[] of raw image file data</returns>
-        public byte[] loadImage(string file_path)
+        /// <returns>PixelBuffer : A compressed pixelbuffer to upload to clients.</returns>
+        public PixelBuffer loadPixelBuffer(string file_path)
         {
+
             Stream image_fs = new FileStream(file_path, FileMode.Open, FileAccess.Read, FileShare.Read);
 
             Bitmap bmp = (Bitmap)Image.FromStream(image_fs);
+            PixelBuffer pixelBuffer = new PixelBuffer(bmp.Width, bmp.Height);
+
             byte[] pixels = new byte[bmp.Width * bmp.Height * 4];
             int i = 0;
             Color c;
@@ -104,15 +107,9 @@ namespace dfe.Server.Engine
                     pixels[i + 3] = c.A;
                     i += 4;
                 }
-            Console.WriteLine("Bytes Read : " + pixels.Length);
-            MemoryStream memStream = new MemoryStream();
-            GZipStream gzip = new GZipStream(memStream, CompressionMode.Compress);
-            gzip.Write(pixels, 0, pixels.Length);
-            gzip.Close();
-            byte[] output = memStream.ToArray();
-            Console.WriteLine("Bytes Out : " + output.Length);
-
-            return output;
+            pixelBuffer.pixels = pixels;
+            pixelBuffer.compressPixels();
+            return pixelBuffer;
         }
 
         public void loadAssetsFromFile(string file_path, Type asset_type)
@@ -160,9 +157,7 @@ namespace dfe.Server.Engine
                 string file_path = "Assets/Textures/" + tex.file;
                 if (File.Exists(file_path))
                 {
-                    tex.pixelBuffer = new PixelBuffer(64, 64);
-
-                    tex.pixelBuffer.pixels = loadImage(file_path);
+                    tex.pixelBuffer = loadPixelBuffer(file_path);
                 }
             }
             return textures;
@@ -175,9 +170,7 @@ namespace dfe.Server.Engine
                 string file_path = "Assets/Sprites/" + spr.file;
                 if (File.Exists(file_path))
                 {
-                    spr.pixelBuffer = new PixelBuffer(16, 16);
-
-                    spr.pixelBuffer.pixels = loadImage(file_path);
+                    spr.pixelBuffer = loadPixelBuffer(file_path);
                 }
             }
             return sprites;
