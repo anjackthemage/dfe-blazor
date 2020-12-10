@@ -122,7 +122,7 @@ namespace dfe.Server.Hubs
             }
             else
             {
-                Console.WriteLine("Heartbeat: N'sync.");
+                //Console.WriteLine("Heartbeat: N'sync.");
             }
         }
         #endregion
