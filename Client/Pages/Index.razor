@@ -5,38 +5,38 @@
 @using dfe.Client.Engine.Network;
 @using dfe.Shared.Render;
 @using dfe.Shared.Entities;
-@using dfe.Client.Engine; 
+@using System.ComponentModel.DataAnnotations;
 
 @inject IJSRuntime JsRuntime;
 @inject NavigationManager NavigationManager;
 
-
-<div id="game_view_container">
-    <div>
-        <canvas tabindex="0" id="game_canvas" width="640" height="480"
-                @ref="render_canvas"
-                @onkeydown="handleKbInput"
-                @onkeyup="handleKbInput"
-                @onpointerdown="handlePointerDown"
-                @onmousemove="handleMouseInput">
-        </canvas>
-    </div>
-    <div hidden="@b_is_game_started">
-        <div class="centered" style="width: 100%; height: 100%; background-color: gray; opacity: 0.5;">
+<div style="display: flex; justify-content: center; align-items: center;">
+    <div id="game_view_container">
+        <div>
+            <canvas tabindex="0" id="game_canvas" width="800" height="600"
+                    @ref="render_canvas"
+                    @onkeydown="handleKbInput"
+                    @onkeyup="handleKbInput"
+                    @onpointerdown="handlePointerDown"
+                    @onmousemove="handleMouseInput">
+            </canvas>
         </div>
-        <div class="centered">
-            <button @onclick="showGame">Start Game</button>
+        <div hidden="@b_is_game_started">
+            <div class="centered" style="width: 100%; height: 100%; background-color: gray; opacity: 0.5;">
+            </div>
+            <div class="centered">
+                <button @onclick="showGame">Start Game</button>
+            </div>
         </div>
     </div>
-</div>
 
-<div id="player_list_container">
-    <div>
-        <span>Player List</span>
+    <div id="player_list_container" style="width: 20%; max-height: 100%; margin-left: 10px; overflow: hidden; overflow-y: auto;">
+        <span>@player_num Other Player(s) Online</span>
+        <hr />
         <ul id="player_list">
             @foreach (KeyValuePair<Guid, Player> player in GameClient.game_state.local_players)
             {
-                <li>>@player.Value.player_name</li>
+                <li>@player.Value.player_name</li>
             }
         </ul>
     </div>
@@ -48,7 +48,7 @@
 
     <div>
         <label>
-            Name:
+            Player Name:
             <input @bind="player_name" />
         </label>
     </div>
@@ -77,9 +77,9 @@
 
 @code {
 
-    // TODO: Need to store a cookie on client machine to save options state (mute, etc,)
+        // TODO: Need to store a cookie on client machine to save options state (mute, etc,)
 
-    //GameClient game_client = new GameClient();
+        //GameClient game_client = new GameClient();
 
     protected ElementReference render_canvas;
 
@@ -93,12 +93,27 @@
     private static GameClient game_client;
 
     private List<string> messages = new List<string>();
+    private int p_num = 0;
+    public int player_num
+    {
+        get { return GameClient.game_state.local_players.Count;  }
+        set { }
+    }
+
     private string p_name = "Test Player";
-    private string player_name {
-        get { return p_name;  }
+    public string player_name
+    {
+        get { return p_name; }
         set
         {
-            p_name = value;
+            if (value == "" || value == null)
+            {
+                p_name = "poo-poo head";
+            }
+            else
+            {
+                p_name = value;
+            }
             GameClient.game_state.player.player_name = p_name;
             PlayerClient.player_client.player_hub_conn.SendAsync("updatePlayerData", GameClient.game_state.player);
         }
