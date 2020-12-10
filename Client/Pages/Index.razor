@@ -3,10 +3,9 @@
 @using Engine;
 @using Microsoft.AspNetCore.SignalR.Client;
 @using dfe.Client.Engine.Network;
-@using dfe.Shared.Entities;
 @using dfe.Shared.Render;
-@using System.Numerics;
-@using System.Collections; 
+@using dfe.Shared.Entities;
+@using dfe.Client.Engine; 
 
 @inject IJSRuntime JsRuntime;
 @inject NavigationManager NavigationManager;
@@ -28,6 +27,18 @@
         <div class="centered">
             <button @onclick="showGame">Start Game</button>
         </div>
+    </div>
+</div>
+
+<div id="player_list_container">
+    <div>
+        <span>Player List</span>
+        <ul id="player_list">
+            @foreach (KeyValuePair<Guid, Player> player in GameClient.game_state.local_players)
+            {
+                <li>>@player.Value.player_name</li>
+            }
+        </ul>
     </div>
 </div>
 
@@ -76,7 +87,6 @@
 
     public bool isConnected;
 
-
     Action<KeyboardEventArgs> handleKbInput;
     Action<MouseEventArgs> handleMouseInput;
 
@@ -98,6 +108,8 @@
 
         game_client = new GameClient(player_hub_uri, map_hub_uri, chat_hub_uri);
         game_client.JsRuntime = JsRuntime;
+
+        game_client.OnPlayersUpdated += StateHasChanged;
       
         this.handleKbInput = game_client.handleKeyboardInput;
         this.handleMouseInput = game_client.handleMouseInput;

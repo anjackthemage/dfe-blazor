@@ -169,5 +169,13 @@ namespace dfe.Client.Engine
             Console.WriteLine("Requesting sprite..");
             player_hub_conn.SendAsync("getSpritePixels", sprite_id);
         }
+
+
+        public event Action OnPlayersUpdated;
+
+        public void updatePlayers()
+        {
+            OnPlayersUpdated?.Invoke();
+        }
     }
 }

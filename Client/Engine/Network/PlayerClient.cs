@@ -73,6 +73,8 @@ namespace dfe.Client.Engine.Network
                             Console.WriteLine("Player disconnected: {0}", plyr.guid);
                             GameClient.game_state.local_players.Remove(plyr.guid);
                         }
+
+                        GameClient.client.updatePlayers();
                     }
                 }
             });
