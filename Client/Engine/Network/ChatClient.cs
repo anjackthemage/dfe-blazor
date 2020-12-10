@@ -25,7 +25,7 @@ namespace dfe.Client.Engine.Network
         public event EventHandler<ChatMessageEventArgs> onChatUpdated;
         
 
-        private List<string> messages = new List<string>();
+        public List<string> messages = new List<string>();
 
         public ChatClient(HubConnection new_hub_connection)
         {
