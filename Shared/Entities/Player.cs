@@ -16,7 +16,7 @@ namespace dfe.Shared.Entities
 
         public Player()
         {
-
+            
         }
 
         public Player(float x_initial, float y_initial, float angle_initial)
@@ -26,6 +26,7 @@ namespace dfe.Shared.Entities
             this.position.X = x_initial;
             this.position.Y = y_initial;
             this.angle = angle_initial;
+            this.sprite_id = 1;
         }
 
         public void update(float time, InputState input_state)
