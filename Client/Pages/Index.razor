@@ -30,7 +30,7 @@
         </div>
     </div>
 
-    <div id="player_list_container" style="width: 20%; max-height: 100%; margin-left: 10px; overflow: hidden; overflow-y: auto;">
+    <div id="player_list_container" style="list-style-type: none; width: 20%; max-height: 100%; margin-left: 10px; overflow: hidden; overflow-y: auto;">
         <span>@player_num Other Player(s) Online</span>
         <hr />
         <ul id="player_list">
@@ -52,22 +52,24 @@
             <input @bind="player_name" />
         </label>
     </div>
+    <hr />
+
+    <div id="chat-messages-container" style="resize: both; list-style-type: none; width: 100%; height: 200px; overflow: auto; overflow-y: auto; display: flex; flex-direction: column-reverse;">
+        <ul>
+            @foreach (var message in messages)
+            {
+                <li>@message</li>
+            }
+        </ul>
+    </div>
     <div>
         <label>
             Message:
-            <input @bind="msg_input" size="50" />
+            <input @bind="chat_input" @onkeyup="chatKeyUp" size="50" />
         </label>
     </div>
     <button @onclick="sendMsg" disabled="@(!isConnected)">Send</button>
 
-    <hr />
-
-    <ul>
-        @foreach (var message in messages)
-        {
-            <li>@message</li>
-        }
-    </ul>
 </div>
 
 <div id="audio-elements">
@@ -77,9 +79,7 @@
 
 @code {
 
-        // TODO: Need to store a cookie on client machine to save options state (mute, etc,)
-
-        //GameClient game_client = new GameClient();
+    // TODO: Need to store a cookie on client machine to save options state (name, mute, etc,)
 
     protected ElementReference render_canvas;
 
@@ -118,7 +118,15 @@
             PlayerClient.player_client.player_hub_conn.SendAsync("updatePlayerData", GameClient.game_state.player);
         }
     }
-    private string msg_input;
+
+    private string chat_message;
+    public string chat_input
+    {
+        get { return chat_message; }
+        set {
+            chat_message = value;
+        }
+    }
 
     private bool b_is_game_started = false;
 
@@ -193,12 +201,22 @@
         await JsRuntime.InvokeVoidAsync("captureMouse", render_canvas, pe_args.PointerId);
     }
 
-    // Chat Begin
+
+    #region chat
+    
+
+    public void chatKeyUp(KeyboardEventArgs kbe)
+    {
+        if (kbe.Key == "Enter")
+        {
+            sendMsg();
+        }
+    }
 
     public async Task sendMsg()
     {
-        //await chat_hub_conn.SendAsync("sendMessage", user_input, msg_input);
-        await game_client.chat_client.sendMsg(msg_input, player_name);
+        await game_client.chat_client.sendMsg(chat_input, player_name);
+        chat_input = "";
     }
 
     public void refreshMessages(object sender, ChatMessageEventArgs che_args)
@@ -208,7 +226,5 @@
     }
 
 
-
-    // Chat End
-
+    #endregion
 }
