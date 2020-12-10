@@ -13,6 +13,7 @@ namespace dfe.Shared.Render
     public class SpriteDef
     {
         // Server side only - Filename of the sprite bitmap.
+        [JsonInclude]
         public string file;
         // Id number of this sprite def
         [JsonInclude]
