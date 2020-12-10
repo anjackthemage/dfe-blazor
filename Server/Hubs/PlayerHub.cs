@@ -19,7 +19,7 @@ namespace dfe.Server.Hubs
             Console.WriteLine("Registering client...");
 
             Player temp_player = player_ref;
-            
+
             temp_player.guid = Guid.NewGuid();
             // TODO: Check for reconnecting players an process accordingly
             if (!connected_players.ContainsKey(Context.ConnectionId))
@@ -54,7 +54,7 @@ namespace dfe.Server.Hubs
 
             Dictionary<Guid, Coord> player_locations = new Dictionary<Guid, Coord>();
 
-            foreach(KeyValuePair<string, Player> player_conn in connected_players)
+            foreach (KeyValuePair<string, Player> player_conn in connected_players)
             {
                 Coord coords = new Coord();
                 Player plyr = player_conn.Value;
@@ -86,7 +86,7 @@ namespace dfe.Server.Hubs
 
         public async Task receivePlayerHeartbeat(Player connected_player)
         {
-            if( connected_player.guid != connected_players[Context.ConnectionId].guid )
+            if (connected_player.guid != connected_players[Context.ConnectionId].guid)
             {
                 Console.WriteLine("Heartbeat: Out of sync: Bad GUID");
 
@@ -95,7 +95,7 @@ namespace dfe.Server.Hubs
                 // New player on same connection
                 // Force authentication
             }
-            else if( connected_player.position != connected_players[Context.ConnectionId].position )
+            else if (connected_player.position != connected_players[Context.ConnectionId].position)
             {
                 Console.WriteLine("Heartbeat: Out of sync: Bad position.");
 
@@ -124,26 +124,33 @@ namespace dfe.Server.Hubs
 
         public async Task getTexturePixels(int id)
         {
-            TextureDef[] textures = GameServer.server.local_textures;
-            if(textures == null || id < 0 || id >= textures.Length)
+            TextureDef tex = null;
+
+            if (GameServer.server.texture_assets.TryGetValue(id, out tex) == false)
             {
                 Console.WriteLine("Unable to fetch requested texture : " + id);
                 return;
             }
-            PixelBuffer buffer = textures[id].pixelBuffer;
-            await Clients.Client(Context.ConnectionId).SendAsync("receiveTexturePixels", id, buffer.width, buffer.height, buffer.pixels);
+            else
+            {
+                PixelBuffer buffer = tex.pixelBuffer;
+                await Clients.Client(Context.ConnectionId).SendAsync("receiveTexturePixels", id, buffer.width, buffer.height, buffer.pixels);
+            }
         }
 
         public async Task getSpritePixels(int id)
         {
-            SpriteDef[] sprites = GameServer.server.local_sprites;
-            if (sprites == null || id < 0 || id >= sprites.Length)
+            SpriteDef spr = null;
+            if (GameServer.server.sprite_assets.TryGetValue(id, out spr) == false)
             {
                 Console.WriteLine("Unable to fetch requested sprite : " + id);
                 return;
             }
-            PixelBuffer buffer = sprites[id].pixelBuffer;
-            await Clients.Client(Context.ConnectionId).SendAsync("receiveSpritePixels", id, buffer.width, buffer.height, buffer.pixels);
+            else
+            {
+                PixelBuffer buffer = spr.pixelBuffer;
+                await Clients.Client(Context.ConnectionId).SendAsync("receiveSpritePixels", id, buffer.width, buffer.height, buffer.pixels);
+            }
         }
         #endregion
 

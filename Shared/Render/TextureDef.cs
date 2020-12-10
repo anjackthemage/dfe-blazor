@@ -46,6 +46,15 @@ namespace dfe.Shared.Render
             this.pixelBuffer = pixelBuffer;
         }
 
+        public bool isValid()
+        {
+            if (pixelBuffer == null
+            || pixelBuffer.pixels == null
+            || pixelBuffer.width * pixelBuffer.height * 4 != pixelBuffer.pixels.Length)
+                return false;
+            return true;
+        }
+
         public override string ToString()
         {
             return "Texture Id :" + id + " Filename :" + file + " PixelBuffer:" + pixelBuffer;

@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.SignalR.Client;
 using dfe.Shared.Entities;
 using dfe.Shared.Render;
 using dfe.Shared;
+using System.IO;
+using System.IO.Compression;
 
 namespace dfe.Client.Engine.Network
 {
@@ -105,25 +107,41 @@ namespace dfe.Client.Engine.Network
             {
                 Console.WriteLine("Textures received!");
                 GameClient.renderer.textures = t_dict;
+                GameClient.renderer.verifyTextures();
             });
 
             player_hub_conn.On<Dictionary<int, SpriteDef>>("receiveSpriteDefs", (s_dict) =>
             {
                 Console.WriteLine("Sprites received!");
                 GameClient.renderer.sprites = s_dict;
+                GameClient.renderer.verifySprites();
             });
 
-            player_hub_conn.On<int, int, int, byte[]>("receiveSpritePixels", (id, width, height, pixels) =>
+            player_hub_conn.On<int, int, int, byte[]>("receiveSpritePixels", (id, width, height, data) =>
             {
+                Console.WriteLine("Receiving sprite : " + id);
                 PixelBuffer pixelBuffer = new PixelBuffer(width, height);
+                byte[] pixels = new byte[width * height * 4];
+                GZipStream gzip = new GZipStream(new MemoryStream(data), CompressionMode.Decompress);
+                gzip.Read(pixels, 0, pixelBuffer.pixels.Length);
+                gzip.Close();
+
+                Console.WriteLine("pixelBuffer : " + pixels.Length);
                 pixelBuffer.pixels = pixels;
+
                 GameClient.renderer.sprites[id].pixelBuffer = pixelBuffer;
                 GameClient.renderer.missing_sprites.Remove(id);
             });
 
-            player_hub_conn.On<int, int, int, byte[]>("receiveTexturePixels", (id, width, height, pixels) =>
+            player_hub_conn.On<int, int, int, byte[]>("receiveTexturePixels", (id, width, height, data) =>
             {
+                Console.WriteLine("Receiving textured : " + id);
                 PixelBuffer pixelBuffer = new PixelBuffer(width, height);
+                byte[] pixels = new byte[width * height * 4];
+                GZipStream gzip = new GZipStream(new MemoryStream(data), CompressionMode.Decompress);
+                gzip.Read(pixels, 0, pixelBuffer.pixels.Length);
+                gzip.Close();
+                Console.WriteLine("pixelBuffer : " + pixels.Length);
                 pixelBuffer.pixels = pixels;
                 GameClient.renderer.textures[id].pixelBuffer = pixelBuffer;
                 GameClient.renderer.missing_textures.Remove(id);

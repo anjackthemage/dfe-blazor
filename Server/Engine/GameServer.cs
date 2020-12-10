@@ -7,8 +7,11 @@ using dfe.Server.Services;
 using dfe.Server.Hubs;
 using Microsoft.AspNetCore.SignalR;
 using System.IO;
+using System.IO.Compression;
 using System.Text.Json;
 using System.Linq;
+using System.Drawing;
+using System.Drawing.Imaging;
 
 namespace dfe.Server.Engine
 {
@@ -27,6 +30,7 @@ namespace dfe.Server.Engine
 
         public GameServer()
         {
+            
             world = new Dictionary<int, Zone>();
             texture_assets = new Dictionary<int, TextureDef>();
             sprite_assets = new Dictionary<int, SpriteDef>();
@@ -77,23 +81,38 @@ namespace dfe.Server.Engine
         public SpriteDef[] local_sprites;
         public TextureDef[] local_textures;
 
+        /// <summary>
+        /// Loads an image binary from the file system.
+        /// </summary>
+        /// <param name="file_path">Name of the file to load.</param>
+        /// <returns>byte[] of raw image file data</returns>
         public byte[] loadImage(string file_path)
         {
             Stream image_fs = new FileStream(file_path, FileMode.Open, FileAccess.Read, FileShare.Read);
-            byte[] image_bytes = new byte[image_fs.Length];
-            image_fs.Read(image_bytes);
 
-            // HACK: Super dirty conversion here - lets make a more graceful image loader :)
-            int siz = image_bytes.Length + (image_bytes.Length / 3);
-            byte[] converted_buffer = new byte[siz];
-            for(int i= 0, j = 0; i < siz; i +=4, j += 3)
-            {
-                converted_buffer[i] = image_bytes[j];
-                converted_buffer[i + 1] = image_bytes[j + 1];
-                converted_buffer[i + 2] = image_bytes[j + 2];
-                converted_buffer[i + 3] = 0xFF;
-            }
-            return converted_buffer;
+            Bitmap bmp = (Bitmap)Image.FromStream(image_fs);
+            byte[] pixels = new byte[bmp.Width * bmp.Height * 4];
+            int i = 0;
+            Color c;
+            for(int y = 0; y < bmp.Height; y++)
+                for(int x = 0; x < bmp.Width; x++)
+                {
+                    c = bmp.GetPixel(x, y);
+                    pixels[i] = c.R;
+                    pixels[i + 1] = c.G;
+                    pixels[i + 2] = c.B;
+                    pixels[i + 3] = c.A;
+                    i += 4;
+                }
+            Console.WriteLine("Bytes Read : " + pixels.Length);
+            MemoryStream memStream = new MemoryStream();
+            GZipStream gzip = new GZipStream(memStream, CompressionMode.Compress);
+            gzip.Write(pixels, 0, pixels.Length);
+            gzip.Close();
+            byte[] output = memStream.ToArray();
+            Console.WriteLine("Bytes Out : " + output.Length);
+
+            return output;
         }
 
         public void loadAssetsFromFile(string file_path, Type asset_type)

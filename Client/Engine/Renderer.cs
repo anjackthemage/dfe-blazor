@@ -74,10 +74,11 @@ namespace dfe.Client.Engine
             renderSprites(camera);
 
             // Request missing textures
-            foreach(int id in missing_textures.Keys)
+            foreach (int id in missing_textures.Keys)
             {
                 if(missing_textures[id] == false)
                 {
+                    Console.WriteLine("Requesting Texture : " + id);
                     // Request the texture
                     GameClient.client.requestTexturePixels(id);
                     // Flag it as requested.
@@ -381,6 +382,20 @@ namespace dfe.Client.Engine
                 hit.y = hit.y * this.camera.grid_y;
             }
             return hit;
+        }
+
+        public void verifyTextures()
+        {
+            foreach (TextureDef tex in textures.Values)
+                if (tex.isValid() == false)
+                    tex.pixelBuffer = null;
+        }
+
+        public void verifySprites()
+        {
+            foreach (SpriteDef spr in sprites.Values)
+                if (spr.isValid() == false)
+                    spr.pixelBuffer = null;
         }
     }
 }

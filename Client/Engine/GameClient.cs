@@ -161,11 +161,13 @@ namespace dfe.Client.Engine
 
         public void requestTexturePixels(int texture_id)
         {
+            Console.WriteLine("Requesting texture..");
             player_hub_conn.SendAsync("getTexturePixels", texture_id);
         }
 
         public void requestSpritePixels(int sprite_id)
         {
+            Console.WriteLine("Requesting sprite..");
             player_hub_conn.SendAsync("getSpritePixels", sprite_id);
         }
     }
