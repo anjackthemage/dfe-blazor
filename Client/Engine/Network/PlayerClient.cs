@@ -21,8 +21,6 @@ namespace dfe.Client.Engine.Network
 
         public Dictionary<Guid, Player> connected_players = new Dictionary<Guid, Player>();
 
-        public SpriteDef default_sprite = new SpriteDef();
-
         public PlayerClient(HubConnection new_hub_conn)
         {
             player_hub_conn = new_hub_conn;
@@ -61,13 +59,13 @@ namespace dfe.Client.Engine.Network
                             GameClient.game_state.local_players[plyr.guid].position = plyr.position;
                             GameClient.game_state.local_players[plyr.guid].position.X = plyr.position.X;
                             GameClient.game_state.local_players[plyr.guid].position.Y = plyr.position.Y;
-                            GameClient.game_state.local_players[plyr.guid].sprite_id = default_sprite.id;
+                            GameClient.game_state.local_players[plyr.guid].sprite_id = plyr.sprite_id;
                         }
                         else
                         {
                             Console.WriteLine("New player!");
                             Player temp_player = new Player(plyr.position.X, plyr.position.Y, 0.0f);
-                            temp_player.sprite_id = default_sprite.id;
+                            temp_player.sprite_id = plyr.sprite_id;
                             temp_player.guid = plyr.guid;
                             GameClient.game_state.local_players.Add(temp_player.guid, temp_player);
                         }
@@ -112,9 +110,7 @@ namespace dfe.Client.Engine.Network
             player_hub_conn.On<Dictionary<int, SpriteDef>>("receiveSpriteDefs", (s_dict) =>
             {
                 Console.WriteLine("Sprites received!");
-                default_sprite = s_dict[1];
                 GameClient.renderer.sprites = s_dict;
-                Console.WriteLine(s_dict[0]);
             });
 
             player_hub_conn.On<int, int, int, byte[]>("receiveSpritePixels", (id, width, height, pixels) =>
