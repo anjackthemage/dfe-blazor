@@ -39,10 +39,20 @@ namespace dfe.Server.Hubs
             await Clients.All.SendAsync("updateConnectedPlayers", connected_players.Values);
         }
 
-        public async Task deregisterPlayerConnection()
+        public override Task OnDisconnectedAsync(Exception exception)
         {
-            Console.WriteLine("Deregistering client...");
-            connected_players.Remove(Context.ConnectionId);
+            Console.WriteLine("Client disconnected: {0}", Context.ConnectionId);
+            deregisterPlayerConnection(Context.ConnectionId);
+            return base.OnDisconnectedAsync(exception);
+        }
+
+        public async Task deregisterPlayerConnection(string connection_id)
+        {
+            Console.WriteLine("Deregistering client: {0}", connection_id);
+            connected_players[connection_id].b_is_disconnect = true;
+            updateConnectedPlayers();
+            // This call should happen in the update loop, not here
+            connected_players.Remove(connection_id);
         }
 
         public async Task updatePlayerPosition(Coord new_position)
