@@ -813,12 +813,12 @@ namespace dfe.Shared.Render
             int fp_src_xStep = (src.width << 8) / clipRect.w;
 
             // Textures are rendered at 90 degrees due to column rendering
-            int fp_src_ix = ((clipRect.top - clipRect.y) * fp_src_xStep);
-            int fp_src_iy = ((clipRect.left - clipRect.x) * fp_src_yStep);
-
+            int fp_u = ((clipRect.left - clipRect.x) * fp_src_xStep);
+            int fp_v = ((clipRect.top - clipRect.y) * fp_src_yStep);
+            int fp_v_org = fp_v;
             //int fp_src_i = ((cRect.top - cRect.y) * fp_src_yStep) + ((cRect.left - cRect.x) * fp_src_xStep);
-            int fp_src;
             int srcIdx;
+
             // Destination pixel index.
             int dst_i = (clipRect.left << 2) + (clipRect.top * dst.stride);
             int dstIdx;
@@ -829,13 +829,13 @@ namespace dfe.Shared.Render
             for (; clipRect.left < clipRect.right; clipRect.left++)
             {
                 dstIdx = dst_i;
-                fp_src = ((fp_src_iy & 0x7FFFFF00) * src.width) + fp_src_ix;
+                fp_v = fp_v_org;
                 // If the sprite is clipped here, we're done.
                 if (y_buffer[clipRect.left].dis < distance)
                     break;
                 for (int t = clipRect.top; t < clipRect.bot; t++)
                 {
-                    srcIdx = (fp_src >> 8) << 2;
+                    srcIdx = ((((fp_v & 0x7FFFFF00) * src.width) + fp_u) >> 8) << 2;
                     if (srcIdx >= src.pixels.Length)
                         break;
                     if (src.pixels[srcIdx + 3] == 0xFF)
@@ -846,9 +846,9 @@ namespace dfe.Shared.Render
                         dst.pixels[dstIdx + 3] = 255;
                     }
                     dstIdx += dst.stride;
-                    fp_src += fp_src_xStep;
+                    fp_v += fp_src_yStep;
                 }
-                fp_src_iy += fp_src_yStep;
+                fp_u += fp_src_xStep;
                 dst_i += 4;
             }
         }
@@ -894,12 +894,12 @@ namespace dfe.Shared.Render
             int fp_src_xStep = (src.width << 8) / clipRect.w;
 
             // Textures are rendered at 90 degrees due to column rendering
-            int fp_src_ix = ((clipRect.top - clipRect.y) * fp_src_xStep);
-            int fp_src_iy = ((clipRect.left - clipRect.x) * fp_src_yStep);
-
+            int fp_u = ((clipRect.left - clipRect.x) * fp_src_xStep);
+            int fp_v = ((clipRect.top - clipRect.y) * fp_src_yStep);
+            int fp_v_org = fp_v;
             //int fp_src_i = ((cRect.top - cRect.y) * fp_src_yStep) + ((cRect.left - cRect.x) * fp_src_xStep);
-            int fp_src;
             int srcIdx;
+
             // Destination pixel index.
             int dst_i = (clipRect.left << 2) + (clipRect.top * dst.stride);
             int dstIdx;
@@ -917,13 +917,13 @@ namespace dfe.Shared.Render
             for (; clipRect.left < clipRect.right; clipRect.left++)
             {
                 dstIdx = dst_i;
-                fp_src = ((fp_src_iy & 0x7FFFFF00) * src.width) + fp_src_ix;
+                fp_v = fp_v_org;
                 // If the sprite is clipped here, we're done.
                 if (y_buffer[clipRect.left].dis < distance)
                     break;
                 for (int t = clipRect.top; t < clipRect.bot; t++)
                 {
-                    srcIdx = (fp_src >> 8) << 2;
+                    srcIdx = ((((fp_v & 0x7FFFFF00) * src.width) + fp_u) >> 8) << 2;
                     if (srcIdx >= src.pixels.Length)
                         break;
                     if (src.pixels[srcIdx + 3] == 0xFF)
@@ -937,9 +937,9 @@ namespace dfe.Shared.Render
                         dst.pixels[dstIdx + 3] = 255;
                     }
                     dstIdx += dst.stride;
-                    fp_src += fp_src_xStep;
+                    fp_v += fp_src_yStep;
                 }
-                fp_src_iy += fp_src_yStep;
+                fp_u += fp_src_xStep;
                 dst_i += 4;
             }
         }
