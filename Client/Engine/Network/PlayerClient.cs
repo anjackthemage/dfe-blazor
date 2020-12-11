@@ -27,8 +27,7 @@ namespace dfe.Client.Engine.Network
         {
             player_hub_conn = new_hub_conn;
 
-            // TODO: Move player hub connection code to separate class
-            // TODO: Differentiate between local and non-local players
+            /// Server's response to our registration attempt
             player_hub_conn.On<bool, Guid>("receiveRegistrationResponse", (b_is_registered, player_guid) =>
             {
                 local_player_guid = player_guid;
@@ -49,6 +48,7 @@ namespace dfe.Client.Engine.Network
 
             });
 
+            /// When a player connects or disconnects, a signal is sent out to all other players to update their info
             player_hub_conn.On<Player[]>("updateConnectedPlayers", (player_connections) =>
             {
                 foreach (Player plyr in player_connections)
@@ -79,6 +79,7 @@ namespace dfe.Client.Engine.Network
                 }
             });
 
+            /// Update the position information for all other players
             player_hub_conn.On<Dictionary<Guid, Coord>>("updatePlayerPositions", (player_positions) =>
             {
                 foreach (KeyValuePair<Guid, Coord> player_conn in player_positions)
@@ -89,16 +90,29 @@ namespace dfe.Client.Engine.Network
                     {
                         GameClient.game_state.local_players[plyr_id].position.X = position.X;
                         GameClient.game_state.local_players[plyr_id].position.Y = position.Y;
+                        // TODO: Add heading info to this communication
                     }
                     // TODO: If we get a position update for an untracked player, request player info from server
                 }
             });
 
+            /// Periodic challenge/response to maintain sync
             player_hub_conn.On("doHeartbeat", () =>
             {
                 if (b_is_player_registered)
                 {
                     player_hub_conn.SendAsync("receivePlayerHeartbeat", GameClient.game_state.player);
+                }
+            });
+
+            /// If the server thinks we're where we are not suppposed to be, it will send us this
+            player_hub_conn.On<Player>("updatePlayerFromServer", (player) =>
+            {
+                if (player.guid == GameClient.game_state.player.guid)
+                {
+                    // This is where we update our position to match the server
+                    //GameClient.game_state.player.heading = player.heading;
+                    //GameClient.game_state.player.position = player.position;
                 }
             });
 

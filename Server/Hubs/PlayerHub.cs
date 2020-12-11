@@ -119,6 +119,7 @@ namespace dfe.Server.Hubs
                 Console.WriteLine("Player {0} Position (client): {1}", connected_player.player_name, connected_player.position.ToString());
                 // We're out of sync
                 // Send map data
+                await Clients.Client(Context.ConnectionId).SendAsync("updatePlayerFromServer", connected_players[Context.ConnectionId]);
             }
             else
             {

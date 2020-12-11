@@ -76,7 +76,6 @@ namespace dfe.Server.Engine
             }
         }
 
-
         #region asset loading
         public SpriteDef[] local_sprites;
         public TextureDef[] local_textures;
