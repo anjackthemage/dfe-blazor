@@ -27,6 +27,8 @@ namespace dfe.Client.Engine.Network
         {
             player_hub_conn = new_hub_conn;
 
+
+            #region registration
             /// Server's response to our registration attempt
             player_hub_conn.On<bool, Guid>("receiveRegistrationResponse", (b_is_registered, player_guid) =>
             {
@@ -47,7 +49,9 @@ namespace dfe.Client.Engine.Network
 
 
             });
+            #endregion
 
+            #region player updates
             /// When a player connects or disconnects, a signal is sent out to all other players to update their info
             player_hub_conn.On<Player[]>("updateConnectedPlayers", (player_connections) =>
             {
@@ -95,7 +99,9 @@ namespace dfe.Client.Engine.Network
                     // TODO: If we get a position update for an untracked player, request player info from server
                 }
             });
+            #endregion
 
+            #region server updates
             /// Periodic challenge/response to maintain sync
             player_hub_conn.On("doHeartbeat", () =>
             {
@@ -115,6 +121,7 @@ namespace dfe.Client.Engine.Network
                     //GameClient.game_state.player.position = player.position;
                 }
             });
+            #endregion
 
             player_hub_conn.StartAsync();
 

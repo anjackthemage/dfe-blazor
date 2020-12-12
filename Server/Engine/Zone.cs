@@ -41,7 +41,7 @@ namespace dfe.Server.Engine
         /// <summary>
         /// Function to handle processing non-render calculations for each object in this zone.
         /// </summary>
-        public async Task simulate()
+        public async Task update()
         {
             // Cycle through all the mobs and ents in the map
             //      process movement

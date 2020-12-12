@@ -58,7 +58,7 @@ namespace dfe.Server.Engine
                 // Call `simulation` code on each zone in world:
                 foreach (KeyValuePair<int, Zone> element in world)
                 {
-                    Task zone_sim_task = element.Value.simulate();  // assign task
+                    Task zone_sim_task = element.Value.update();  // assign task
                     zone_sims[element.Key] = zone_sim_task;         // put task in array
                 }
 
