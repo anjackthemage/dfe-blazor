@@ -2,7 +2,8 @@
 
 dfe-blazor is a game engine written in C# and JavaScript, using Blazor to compile to WebAssembly.
 
-[](https://raw.githubusercontent.com/anjackthemage/dfe-blazor/main/Assets/ss_1.png) [](https://raw.githubusercontent.com/anjackthemage/dfe-blazor/main/Assets/ss_2.png)
+![](https://raw.githubusercontent.com/anjackthemage/dfe-blazor/main/Assets/ss_1.png)
+![](https://raw.githubusercontent.com/anjackthemage/dfe-blazor/main/Assets/ss_2.png)
 
 The virtual 3D game view is created using a custom raycasting engine that supports loading textures and sprites from PNG files.The raycaster is written in C# and individual video frames are sent to the HTML canvas using JavaScript Interop functionality provided by Blazor.
 
